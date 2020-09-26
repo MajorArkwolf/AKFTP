@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 # Set the project details.
-set(PROJECT_NAME myftp)
+set(PROJECT_NAME myftp-shared)
 project(${PROJECT_NAME} LANGUAGES C)
 
 # Clang sanitizer settings.
@@ -32,13 +32,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG    ${PROJECT_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${PROJECT_BINARY_DIR})
 
+add_library(${PROJECT_NAME} SHARED
+        src/main.c
+)
+
 # Define the executable.
-add_executable(${PROJECT_NAME})
-add_executable(${PROJECT_NAME}d)
+# add_executable(${PROJECT_NAME})
 
-add_subdirectory(client)
-add_subdirectory(server)
-add_subdirectory(shared)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
+target_include_directories(${PROJECT_NAME} PRIVATE src)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-shared)
-target_link_libraries(${PROJECT_NAME}d PRIVATE ${PROJECT_NAME}-shared)
+
+

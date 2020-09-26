@@ -1,3 +1,3 @@
-target_sources(${PROJECT_NAME}-server PRIVATE
+target_sources(${PROJECT_NAME}d PRIVATE
     main.c
 )
