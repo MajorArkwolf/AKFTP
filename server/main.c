@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <shared/Message.h>
+#include <Message.h>
 
 int main() {
     printf("Hello world");
