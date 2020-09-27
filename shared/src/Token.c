@@ -1,7 +1,7 @@
-#include "token.h"
+#include "../include/Token.h"
 #include <string.h>
 
-int tokenise(char *inputLine, char *token[])
+int Tokenise(char *inputLine, char *token[],  char* separators)
 {
     char *readToken;
     int count = 0;

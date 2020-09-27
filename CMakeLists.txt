@@ -1,5 +1,5 @@
 # Set cmake minimum version.
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.14)
 
 # Set the project details.
 set(PROJECT_NAME myftp)
@@ -33,7 +33,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG    ${PROJECT_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${PROJECT_BINARY_DIR})
 
 # Define the executable.
-add_executable(${PROJECT_NAME})
+add_executable(${PROJECT_NAME} client/Client.h client/Client.c)
 add_executable(${PROJECT_NAME}d)
 
 add_subdirectory(client)
