@@ -35,7 +35,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${PROJECT_BINARY_DIR})
 
 add_library(${PROJECT_NAME} SHARED
         src/Token.c
-        src/Message.c
         src/CommandHandler.c
         )
 
