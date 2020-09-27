@@ -1,4 +1,4 @@
-#include "../include/Token.h"
+#include "../include/token.h"
 #include <string.h>
 
 int Tokenise(char *inputLine, char *token[],  char* separators)

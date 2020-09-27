@@ -1,11 +1,11 @@
 
-#include "Client.h"
+#include "client.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <CommandHandler.h>
-#include <Token.h>
+#include <command_handler.h>
+#include <token.h>
 
 #define MESSAGE_SIZE 1024
 
