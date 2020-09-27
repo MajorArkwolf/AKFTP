@@ -1,4 +1,3 @@
-
 #include "client.h"
 #include <string.h>
 #include <stdlib.h>
@@ -6,8 +5,20 @@
 #include <stdbool.h>
 #include <command_handler.h>
 #include <token.h>
+#include <unistd.h>
+#include <errno.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <json_object.h>
+#include <json_tokener.h>
+#include "shared.h"
 
 #define MESSAGE_SIZE 1024
+
+#define PORT "3490" // the port client will be connecting to
 
 int RunClient() {
     bool shouldContinue = true;
