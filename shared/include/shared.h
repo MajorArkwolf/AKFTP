@@ -1,8 +1,12 @@
-//
-// Created by Peter Crabbe on 27/9/20.
-//
+#pragma once
+#include <sys/socket.h>
 
-#ifndef MYFTP_SHARED_H
-#define MYFTP_SHARED_H
+#define MAXDATASIZE 1000
 
-#endif //MYFTP_SHARED_H
+void *get_in_addr(struct sockaddr *sa);
+
+unsigned calculate_polling(unsigned file_size, unsigned buffer_size);
+
+ssize_t send_large(int socket, const void *data, size_t data_size, int flags);
+
+ssize_t receive_large(int socket, void *buffer, int flags);
