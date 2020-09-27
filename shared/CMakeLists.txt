@@ -1,5 +1,5 @@
 # Set cmake minimum version.
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.14)
 
 # Set the project details.
 set(PROJECT_NAME myftp-shared)
@@ -32,15 +32,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG    ${PROJECT_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${PROJECT_BINARY_DIR})
 
+
 add_library(${PROJECT_NAME} SHARED
-        src/main.c
-)
+        src/token.c
+        src/command_handler.c
+        )
 
 # Define the executable.
 # add_executable(${PROJECT_NAME})
 
-target_include_directories(${PROJECT_NAME} PRIVATE include)
-target_include_directories(${PROJECT_NAME} PRIVATE src)
-
-
+target_include_directories(${PROJECT_NAME} INTERFACE ./include)
+#target_include_directories(${PROJECT_NAME} PRIVATE src)
 
