@@ -15,6 +15,9 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <json_object.h>
+#include <json_tokener.h>
+#include <string.h>
 
 #define PORT "3490"  // the port users will be connecting to
 #define BACKLOG 10	 // how many pending connections queue will hold
@@ -110,20 +113,25 @@ int main(void)
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
 
-        if (!fork()) { // this is the child process
+        if (/**!fork()**/ 1) { // this is the child process
             bool close_program = false;
             char *buf = NULL;
             int numbytes = 0;
             close(sockfd);
             while(!close_program) {
-                if ((numbytes = receive_large(new_fd, buf,0)) == -1) {
+                if ((numbytes = receive_large(new_fd, &buf,0)) == -1) {
                     perror("recv");
+                    close(new_fd);
                     exit(1);
                 }
+                json_object *json = json_tokener_parse(buf);
+                const char *str = json_object_get_string(json_object_object_get(json, "command"));
+                size_t size;
+                const char *data = json_object_to_json_string_length(json, 0, &size);
                 if (numbytes > 1) {
-                    //buf[numbytes] = '\0';
-                    printf("%s\n", buf);
-                    send_large (new_fd, buf, numbytes, 0);
+                    buf[numbytes] = '\0';
+                    printf("Server: %s\n", str);
+                    send_large (new_fd, data, size, 0);
                 }
                 numbytes = 0;
             }
