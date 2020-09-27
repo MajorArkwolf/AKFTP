@@ -4,36 +4,42 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <CommandHandler.h>
+#include <Token.h>
 
 #define MESSAGE_SIZE 1024
 
 int RunClient() {
     bool shouldContinue = true;
-    char Message[MESSAGE_SIZE];
-    char *tokens[1024];
-    int handleMessageReturn = 0;
+    char message[MESSAGE_SIZE];
+    char *tokens[MAX_NUM_TOKENS];
+
     printf("Peter and Kiera FTP Client, type 'help' for instructions\n");
 
     //Program main loop
     while (shouldContinue == true) {
-        handleMessageReturn = 0;
+        int numTokens = 0;
+        int commandResult = 0;
+
         printf(">");
-        fgets(Message, MESSAGE_SIZE, stdin);
-        strtok(Message, "\n");
-        handleMessageReturn = HandleMessage(Message);
-        if (handleMessageReturn != 0) {
-            if (handleMessageReturn == -1) {
+        fgets(message, MESSAGE_SIZE, stdin);
+        strtok(message, "\n");
+        numTokens = Tokenise(message, tokens, "\n\t ");
+        if (numTokens > 0)
+        {
+            commandResult = HandleCommand(tokens, numTokens) ;
+            if(commandResult == -1)
+            {
                 shouldContinue = false;
             }
         }
+
     }
     //Close stuff
     exit(EXIT_SUCCESS);
 }
 
-int HandleMessage(char **tokens) {
-
-
+int StartClient(int argc, char **argv) {
+    RunClient();
 }
-
 

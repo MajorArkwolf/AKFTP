@@ -1,6 +1,6 @@
 #include "Client.h"
 
-int main(void)
+int main(int argc, char** argv)
 {
-    return RunClient();
+    return StartClient(argc, argv);
 }

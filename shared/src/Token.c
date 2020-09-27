@@ -3,10 +3,9 @@
 
 int Tokenise(char *inputLine, char *token[],  char* separators)
 {
-    char *readToken;
+    char *readToken = strtok(inputLine, separators);
     int count = 0;
 
-    readToken = strtok(inputLine, tokenSeparators);
     token[count] = readToken;
     while (readToken != NULL)
     {
@@ -15,7 +14,7 @@ int Tokenise(char *inputLine, char *token[],  char* separators)
         {
             return -1;
         }
-        readToken = strtok(NULL, tokenSeparators);
+        readToken = strtok(NULL, separators);
         token[count] = readToken;
     }
     return count;
