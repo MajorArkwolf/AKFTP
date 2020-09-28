@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <json_object.h>
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -22,15 +23,7 @@ unsigned calculate_polling(unsigned file_size, unsigned buffer_size) {
     }
     return polling;
 }
-/**
- * Send data via a socket, the first part sends the size of the data, awaits confirmation that the data
- * was received by the receiver and then sends the data.
- * @param socket the socket to connect to.
- * @param data data to be send over the network.
- * @param data_size the size of the given data.
- * @param flags any flags needed for the socket.
- * @return 0 if a success or -1 if failed.
- */
+
 ssize_t send_large(int socket, const void *data, size_t data_size, int flags) {
     unsigned file_size = data_size;
     send(socket, &file_size, sizeof(int), flags);
@@ -46,14 +39,7 @@ ssize_t send_large(int socket, const void *data, size_t data_size, int flags) {
     send(socket, data, file_size, flags);
     return 0;
 }
-/**
- * Receives a large file, the first part gets the total size, sends an ack that its ready then begins
- * getting all the data.
- * @param socket the socket to listen on.
- * @param buffer the buffer off data to be converted back into what is needed.
- * @param flags to be passed into send()
- * @return the size of the data.
- */
+
 ssize_t receive_large(int socket, char **buffer, int flags) {
     free(*buffer);
     unsigned file_size = 0;
@@ -71,4 +57,13 @@ ssize_t receive_large(int socket, char **buffer, int flags) {
         return -1;
     }
     return file_size;
+}
+
+const char *get_string_from_key(json_object* json, char *key) {
+    return json_object_get_string(json_object_object_get(json, key));
+}
+
+void object_to_json(struct json_object* json, char *key, char* data) {
+    json_object *new_object = json_object_new_string(data);
+    json_object_object_add(json, key, new_object);
 }

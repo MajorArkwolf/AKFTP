@@ -51,8 +51,7 @@ int RunClient(int socket) {
 }
 
 int StartClient(int argc, char **argv) {
-    int sockfd, numbytes;
-    char *buf = NULL;
+    int sockfd;
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
