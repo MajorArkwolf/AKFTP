@@ -212,4 +212,3 @@ void PrintCHDIRError(bool client, int errorNumber) {
             break;
     }
 }
-
