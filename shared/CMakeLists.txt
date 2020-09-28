@@ -36,8 +36,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${PROJECT_BINARY_DIR})
 add_library(${PROJECT_NAME} SHARED
         src/shared.c
         src/token.c
-        src/command_handler.c
-)
+        src/directory_handling.c
+        )
 
 
 target_include_directories(${PROJECT_NAME} INTERFACE include)
