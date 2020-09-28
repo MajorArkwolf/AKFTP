@@ -1,0 +1,79 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{dirtree}
+\usepackage{xcolor}
+\usepackage{listings}
+\newcommand\myicon[1]{{\color{#1}\rule{2ex}{2ex}}}
+\newcommand{\myfolder}[2]{\myicon{#1}\ {#2}}
+\usepackage{minted}
+\large
+\title{C++ Assignment 1}
+\begin{document}
+\begin{titlepage}
+	\begin{center}
+    \line(1,0){300}\\
+    [0.65cm]
+	\huge{\bfseries Assignment II}\\
+	\line(1,0){300}\\
+	\textsc{\Large FTP Server and Client}\\
+	\textsc{\LARGE \today}\\
+	[5.5cm]     
+	\end{center}
+	\begin{flushright}
+		\textsc{\Large Kiera Gibson\\XXXXXXXX}\\
+		[0.5cm]
+		\textsc{\Large Peter S. Crabbe\\32019269}\\
+		[0.5cm]
+	\end{flushright}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+\section{Project Declaration}
+
+\section{List of Files}
+\dirtree{%
+.1 \myfolder{red}{Assignment 2}.
+.2 \myfolder{blue}{client}.
+.3 \myfolder{green}{client.h}.
+.3 \myfolder{green}{client.c}.
+.3 \myfolder{green}{main.h}.
+.3 \myfolder{green}{main.c}.
+.2 \myfolder{blue}{server}.
+.3 \myfolder{green}{main.h}.
+.3 \myfolder{green}{main.c}.
+.2 \myfolder{blue}{shared}.
+.3 \myfolder{green}{shared.h}.
+.3 \myfolder{green}{shared.c}.
+.2 \myfolder{blue}{documentation}.
+.3 \myfolder{green}{Assignment2.tex}.
+}
+
+\section{Information}
+
+\section{Self Diagnosis and Evaluation}
+
+\section{Solution Breakdown}
+
+\section{Protocol}
+
+\section{Test Evidence}
+
+\section{Source Code Listing}
+\subsection{Client}
+    \subsubsection{main.c}
+	\lstinputlisting[language=C]{../client/main.c}
+	\subsubsection{shared.c}
+	\lstinputlisting[language=C]{../client/client.c}
+\subsection{Server}
+    \subsubsection{main.c}
+	\lstinputlisting[language=C]{../server/main.c}
+\subsection{Shared}
+    \subsubsection{shared.c}
+	\lstinputlisting[language=C]{../shared/src/shared.c}
+
+\end{document}
