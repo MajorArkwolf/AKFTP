@@ -35,7 +35,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${PROJECT_BINARY_DIR})
 
 add_library(${PROJECT_NAME} SHARED
         src/token.c
-        src/command_handler.c
+        src/directory_handling.c
         )
 
 # Define the executable.
