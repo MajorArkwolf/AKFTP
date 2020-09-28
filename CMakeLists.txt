@@ -47,3 +47,4 @@ add_subdirectory(lib)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-shared json-c)
 target_link_libraries(${PROJECT_NAME}d PRIVATE ${PROJECT_NAME}-shared json-c)
+target_link_libraries(${PROJECT_NAME}-shared PRIVATE json-c)

@@ -39,8 +39,6 @@ add_library(${PROJECT_NAME} SHARED
         src/directory_handling.c
         )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE json-c)
-
 target_include_directories(${PROJECT_NAME} INTERFACE include)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
