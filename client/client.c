@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <json_tokener.h>
 
 #define MESSAGE_SIZE 1024
 
@@ -26,24 +27,25 @@ int RunClient(int socket) {
     char *tokens[MAX_NUM_TOKENS];
 
     printf("Peter and Kiera FTP Client, type 'help' for instructions\n");
-
+    json_object *json = NULL;
     //Program main loop
     while (shouldContinue == true) {
         int numTokens = 0;
         int commandResult = 0;
-        json_object *json = json_object_new_object();
+
         size_t size;
         printf(">");
         fgets(message, MESSAGE_SIZE, stdin);
         strtok(message, "\n");
         numTokens = Tokenise(message, tokens, "\n\t ");
+        json = json_object_new_object();
         if (numTokens > 0) {
             commandResult = HandleCommand(json, socket, tokens, numTokens);
             if (commandResult == -1) {
                 shouldContinue = false;
             }
         }
-
+        free(json);
     }
     //Close stuff
     exit(EXIT_SUCCESS);
@@ -113,16 +115,16 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         const char *data = json_object_to_json_string_length(json, 0, &size);
         send_large(socket, data, size, 0);
         receive_large(socket, &response_data, 0);
-        printf("%s\n", response_data);
         //Request string from server about current working directory
         //max size of request is (FILENAME_MAX * sizeof(char)) if successful
         //return errno otherwise
-
-        int errorNumber = 0;
+        json_object *response = json_tokener_parse(response_data);
+        int errorNumber = json_object_get_int((json_object_object_get(response,"error")));
         //char* serverWorkingDirectory = GetServerWorkingDirectory(&errorNumber);
-        if (1 /*serverWorkingDirectory != NULL */) {
-            //printf("%s\n", serverWorkingDirectory);
-            //free(serverWorkingDirectory);
+        if (errorNumber == 0) {
+            const char *cwd = json_object_get_string(json_object_object_get(response,"cwd"));
+            printf("%s\n", cwd);
+            free(response);
             return 0;
         } else {
             PrintCWDError(false, errorNumber);
@@ -167,10 +169,18 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     } else if (strcmp(tokens[0], "cd") == 0) {
         //TODO Support file paths with spaces
         if (tokens[1] != NULL) {
+            pack_command_to_json(json, "cd");
+            json_object *dir = json_object_new_string(tokens[1]);
+            json_object_object_add(json, "dir", dir);
+            const char *data = json_object_to_json_string_length(json, 0, &size);
+            send_large(socket, data, size, 0);
+            receive_large(socket, &response_data, 0);
             //send tokens[1] to server with command to change directory
             //server will return error number, 0 if no error
-            if (0/*errorNumber != 0*/) {
-                //PrintCHDIRError(true, errorNumber);
+            json_object *response = json_tokener_parse(response_data);
+            int errorNumber = json_object_get_int((json_object_object_get(response,"error")));
+            if (errorNumber != 0) {
+                PrintCHDIRError(true, errorNumber);
             } else {
                 return EXIT_SUCCESS;
             }

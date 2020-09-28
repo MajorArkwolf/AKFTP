@@ -18,11 +18,12 @@ char *GetCurrentWorkingDirectory(int *errorNumber) {
     return buffer;
 }
 
-int ChangeCurrentWorkingDirectory(char *newDirectory) {
+int ChangeCurrentWorkingDirectory(const char *newDirectory) {
     int errorNumber = 0;
     if (chdir(newDirectory) != 0) {
         errorNumber = errno;
     }
+    return errorNumber;
 }
 
 int GetListOfFiles(char *directoryPath, struct dirent **filenames, int *errorNumber) {

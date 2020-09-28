@@ -34,12 +34,25 @@ void sigchld_handler(int s)
 json_object *HandleRequest(json_object *json) {
     json_object *response = json_object_new_object();
     const char *command = unpack_command_from_json(json);
+    int errorNumber = 0;
     if(strcmp(command, "pwd") == 0) {
-        int errorNumber = 0;
         json_object *cwd = json_object_new_string(GetCurrentWorkingDirectory(&errorNumber));
         json_object *error = json_object_new_int(errorNumber);
         json_object_object_add(response, "error", error);
         json_object_object_add(response, "cwd", cwd);
+    } else if (strcmp(command, "cd") == 0) {
+        const char *dir_change = json_object_get_string(json_object_object_get(json, "dir"));
+        errorNumber = ChangeCurrentWorkingDirectory(dir_change);
+        json_object *error = json_object_new_int(errorNumber);
+        json_object_object_add(response, "error", error);
+    } else if (strcmp(command, "dir") == 0) {
+
+    } else if (strcmp(command, "put") == 0) {
+
+    } else if (strcmp(command, "get") == 0) {
+
+    } else {
+        json_object *error = json_object_new_int(errorNumber);
     }
     return response;
 }
@@ -127,6 +140,8 @@ int main(void)
             bool close_program = false;
             char *buf = NULL;
             int numbytes = 0;
+            json_object *json = NULL;
+            json_object *response = NULL;
             close(sockfd);
             while(!close_program) {
                 if ((numbytes = receive_large(new_fd, &buf,0)) == -1) {
@@ -134,17 +149,13 @@ int main(void)
                     close(new_fd);
                     exit(1);
                 }
-                json_object *json = json_tokener_parse(buf);
-                json_object *response = HandleRequest(json);
+                json = json_tokener_parse(buf);
+                response = HandleRequest(json);
                 size_t size;
                 const char *data = json_object_to_json_string_length(response, 0, &size);
                 send_large (new_fd, data, size, 0);
-//                if (numbytes > 1) {
-//                    buf[numbytes] = '\0';
-//                    printf("Server: %s\n", str);
-//                    send_large (new_fd, data, size, 0);
-//                }
-//                numbytes = 0;
+                free(json);
+                free(response);
             }
         }
         close(new_fd);  // parent doesn't need this
