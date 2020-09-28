@@ -48,7 +48,21 @@ json_object *HandleRequest(json_object *json) {
     } else if (strcmp(command, "dir") == 0) {
 
     } else if (strcmp(command, "put") == 0) {
-
+        const char *filename = json_object_get_string(json_object_object_get(json, "filename"));
+        const char *filedata = json_object_get_string(json_object_object_get(json, "filedata"));
+        FILE *fp = NULL;
+        fp = fopen(filename, "w");
+        if (fp == NULL) {
+            errorNumber = -1;
+            json_object *error = json_object_new_int(errorNumber);
+            json_object_object_add(response, "error", error);
+            return 0;
+        }
+        fputs(filedata, fp);
+        fclose(fp);
+        json_object *error = json_object_new_int(errorNumber);
+        json_object_object_add(response, "error", error);
+        return 0;
     } else if (strcmp(command, "get") == 0) {
 
     } else {

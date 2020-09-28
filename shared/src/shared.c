@@ -2,8 +2,8 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
+#include <sys/stat.h>
 
 
 // get sockaddr, IPv4 or IPv6:
@@ -14,14 +14,6 @@ void *get_in_addr(struct sockaddr *sa)
     }
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
-unsigned calculate_polling(unsigned file_size, unsigned buffer_size) {
-    int polling = file_size / buffer_size;
-    if (file_size % buffer_size != 0) {
-        ++polling;
-    }
-    return polling;
 }
 
 ssize_t send_large(int socket, const void *data, size_t data_size, int flags) {
@@ -74,4 +66,9 @@ void pack_command_to_json(struct json_object* json, char *command) {
 
 const char* unpack_command_from_json(struct json_object* json) {
     return get_string_from_key(json, "command");
+}
+
+bool check_if_file_exists(const char *file_name) {
+    struct stat buffer;
+    return (stat (file_name, &buffer) == 0);
 }

@@ -1,12 +1,16 @@
 #pragma once
 #include <sys/socket.h>
 #include <json_object.h>
+#include <stdbool.h>
 
 #define MAXDATASIZE 1000
 
+/**
+ * Gets the IP address, could be IPv4 or IPv6
+ * @param sa sockaddr object
+ * @return either ipv4 or ipv6 depending on the data.
+ */
 void *get_in_addr(struct sockaddr *sa);
-
-unsigned calculate_polling(unsigned file_size, unsigned buffer_size);
 
 /**
  * Send data via a socket, the first part sends the size of the data, awaits confirmation that the data
@@ -52,4 +56,16 @@ void add_object_to_json(struct json_object* json, char *key, char* data);
  */
 void pack_command_to_json(struct json_object* json, char *command);
 
+/**
+ * Helper function to quickly unpack the command from a given json.
+ * @param json json to unpack.
+ * @return const char of the given command.
+ */
 const char* unpack_command_from_json(struct json_object* json);
+
+/**
+ * Check to see if the file exists
+ * @param file_name file name to check for.
+ * @return true if file exists.
+ */
+bool check_if_file_exists(const char *file_name);

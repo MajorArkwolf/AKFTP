@@ -205,7 +205,49 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     } else if (strcmp(tokens[0], "get") == 0) {
 
     } else if (strcmp(tokens[0], "put") == 0) {
-
+        if (numTokens < 1) {
+            perror("Did not provide a file");
+            return 0;
+        }
+        if (!check_if_file_exists(tokens[1])) {
+            perror("File not found");
+            return 0;
+        }
+        FILE *fp = NULL;
+        long lSize;
+        char *buffer;
+        fp = fopen(tokens[1], "rb");
+        if (fp == NULL) {
+            perror("Error: File did not open.");
+            return 0;
+        }
+        fseek( fp , 0L , SEEK_END);
+        lSize = ftell( fp );
+        rewind( fp );
+        /* allocate memory for entire content */
+        buffer = calloc( 1, lSize+1 );
+        if( !buffer ) {
+            fclose(fp),fputs("memory alloc fails",stderr),exit(1);
+        }
+        /* copy the file into the buffer */
+        if( 1!=fread( buffer , lSize, 1 , fp) ) {
+            fclose(fp),free(buffer),fputs("entire read fails",stderr),exit(1);
+        }
+        fclose(fp);
+        pack_command_to_json(json, "put");
+        json_object *filename = json_object_new_string(tokens[1]);
+        json_object_object_add(json, "filename", filename);
+        json_object *filedata = json_object_new_string(buffer);
+        json_object_object_add(json, "filedata", filedata);
+        const char *data = json_object_to_json_string_length(json, 0, &size);
+        send_large(socket, data, size, 0);
+        receive_large(socket, &response_data, 0);
+        json_object *response = json_tokener_parse(response_data);
+        int errorNumber = json_object_get_int((json_object_object_get(response,"error")));
+        if (errorNumber != 0) {
+            perror("Failed to upload");
+            return 0;
+        }
     } else {
         printf("Unknown command. Type 'help' to get the list of commands.\n");
     }
