@@ -44,3 +44,12 @@ const char *get_string_from_key(json_object* json, char *key);
  * @param data string value to insert.
  */
 void add_object_to_json(struct json_object* json, char *key, char* data);
+
+/**
+ * Packs a command into the json to be parsed
+ * @param json json file to add too
+ * @param command the command that will be executed.
+ */
+void pack_command_to_json(struct json_object* json, char *command);
+
+const char* unpack_command_from_json(struct json_object* json);

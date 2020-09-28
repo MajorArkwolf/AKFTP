@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <json_object.h>
 /**
  * The main loop of the client program, asks for user input and sends it where it needs to go
  * @return EXIT_SUCCESS or EXIT_FAILURE based on what happens during the runtime the program
@@ -20,7 +21,7 @@ int StartClient(int argc, char** argv);
  * @param numTokens The number of tokens in the array
  * @return -1 If exit or quit called, 0 otherwise
  */
-int HandleCommand(char **tokens, int numTokens);
+int HandleCommand(json_object *json, int socket, char **tokens, int numTokens);
 
 /**
  * Prints the description related with the error number received by the getcwd function

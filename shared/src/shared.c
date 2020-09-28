@@ -67,3 +67,11 @@ void object_to_json(struct json_object* json, char *key, char* data) {
     json_object *new_object = json_object_new_string(data);
     json_object_object_add(json, key, new_object);
 }
+
+void pack_command_to_json(struct json_object* json, char *command) {
+    object_to_json(json, "command", command);
+}
+
+const char* unpack_command_from_json(struct json_object* json) {
+    return get_string_from_key(json, "command");
+}

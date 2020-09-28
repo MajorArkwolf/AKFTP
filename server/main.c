@@ -1,7 +1,3 @@
-/*
-** server.c -- a stream socket server demo
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -18,6 +14,7 @@
 #include <json_object.h>
 #include <json_tokener.h>
 #include <string.h>
+#include "directory_handling.h"
 
 #define PORT "3490"  // the port users will be connecting to
 #define BACKLOG 10	 // how many pending connections queue will hold
@@ -32,6 +29,19 @@ void sigchld_handler(int s)
     while(waitpid(-1, NULL, WNOHANG) > 0);
 
     errno = saved_errno;
+}
+
+json_object *HandleRequest(json_object *json) {
+    json_object *response = json_object_new_object();
+    const char *command = unpack_command_from_json(json);
+    if(strcmp(command, "pwd") == 0) {
+        int errorNumber = 0;
+        json_object *cwd = json_object_new_string(GetCurrentWorkingDirectory(&errorNumber));
+        json_object *error = json_object_new_int(errorNumber);
+        json_object_object_add(response, "error", error);
+        json_object_object_add(response, "cwd", cwd);
+    }
+    return response;
 }
 
 int main(void)
@@ -125,15 +135,16 @@ int main(void)
                     exit(1);
                 }
                 json_object *json = json_tokener_parse(buf);
-                const char *str = json_object_get_string(json_object_object_get(json, "command"));
+                json_object *response = HandleRequest(json);
                 size_t size;
-                const char *data = json_object_to_json_string_length(json, 0, &size);
-                if (numbytes > 1) {
-                    buf[numbytes] = '\0';
-                    printf("Server: %s\n", str);
-                    send_large (new_fd, data, size, 0);
-                }
-                numbytes = 0;
+                const char *data = json_object_to_json_string_length(response, 0, &size);
+                send_large (new_fd, data, size, 0);
+//                if (numbytes > 1) {
+//                    buf[numbytes] = '\0';
+//                    printf("Server: %s\n", str);
+//                    send_large (new_fd, data, size, 0);
+//                }
+//                numbytes = 0;
             }
         }
         close(new_fd);  // parent doesn't need this

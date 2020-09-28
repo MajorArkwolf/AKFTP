@@ -31,13 +31,14 @@ int RunClient(int socket) {
     while (shouldContinue == true) {
         int numTokens = 0;
         int commandResult = 0;
-
+        json_object *json = json_object_new_object();
+        size_t size;
         printf(">");
         fgets(message, MESSAGE_SIZE, stdin);
         strtok(message, "\n");
         numTokens = Tokenise(message, tokens, "\n\t ");
         if (numTokens > 0) {
-            commandResult = HandleCommand(tokens, numTokens);
+            commandResult = HandleCommand(json, socket, tokens, numTokens);
             if (commandResult == -1) {
                 shouldContinue = false;
             }
@@ -99,14 +100,20 @@ int StartClient(int argc, char **argv) {
     return 0;
 }
 
-int HandleCommand(char **tokens, int numTokens) {
-
+int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
+    size_t size = 0;
+    char *response_data = NULL;
     if (strcmp(tokens[0], "quit") == 0 || strcmp(tokens[0], "exit") == 0) {
         return -1;
     } else if (strcmp(tokens[0], "help") == 0) {
         printf("Not implemented yet, good luck. Type quit or exit to exit program.\n");
         return 0;
     } else if (strcmp(tokens[0], "pwd") == 0) {
+        pack_command_to_json(json, "pwd");
+        const char *data = json_object_to_json_string_length(json, 0, &size);
+        send_large(socket, data, size, 0);
+        receive_large(socket, &response_data, 0);
+        printf("%s\n", response_data);
         //Request string from server about current working directory
         //max size of request is (FILENAME_MAX * sizeof(char)) if successful
         //return errno otherwise
