@@ -7,6 +7,7 @@
 #include <directory_handling.h>
 #include <token.h>
 #include <errno.h>
+#include <dirent.h>
 
 #define MESSAGE_SIZE 1024
 
@@ -78,10 +79,40 @@ int HandleCommand(char **tokens, int numTokens) {
 
     } else if (strcmp(tokens[0], "dir") == 0) {
 
+
     } else if (strcmp(tokens[0], "ldir") == 0) {
+        /*int errorNumber = 0;
+        char *clientWorkingDirectory = GetCurrentWorkingDirectory(&errorNumber);
+        if (clientWorkingDirectory != NULL) {
+            struct dirent **filenames;
+            int count = GetListOfFiles(clientWorkingDirectory, filenames, &errorNumber);
+            if (count > 0) {
+                for (int i = 0; i < count; ++i) {
+                    printf("%s\n", filenames[i]->d_name);
+                    free(filenames[i]);
+                }
+                free(filenames);
+            }
 
-
+            free(clientWorkingDirectory);
+            return EXIT_SUCCESS;
+        } else {
+            PrintCWDError(true, errorNumber);
+            return EXIT_FAILURE;
+        }
+        */
     } else if (strcmp(tokens[0], "cd") == 0) {
+        //TODO Support file paths with spaces
+        if (tokens[1] != NULL) {
+            //send tokens[1] to server with command to change directory
+            //server will return error number, 0 if no error
+            if (0/*errorNumber != 0*/) {
+                //PrintCHDIRError(true, errorNumber);
+            } else {
+                return EXIT_SUCCESS;
+            }
+        }
+        return EXIT_FAILURE;
 
     } else if (strcmp(tokens[0], "lcd") == 0) {
         //TODO Support file paths with spaces
