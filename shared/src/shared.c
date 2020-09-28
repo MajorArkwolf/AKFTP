@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include <json_object.h>
+
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)

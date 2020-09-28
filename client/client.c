@@ -1,13 +1,20 @@
 #include "client.h"
+#include <shared.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <directory_handling.h>
 #include <token.h>
 #include <errno.h>
 #include <dirent.h>
-
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #define MESSAGE_SIZE 1024
 
