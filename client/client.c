@@ -153,11 +153,11 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         /*int errorNumber = 0;
         char *clientWorkingDirectory = GetCurrentWorkingDirectory(&errorNumber);
         if (clientWorkingDirectory != NULL) {
-            struct dirent **filenames;
+            char **filenames;
             int count = GetListOfFiles(clientWorkingDirectory, filenames, &errorNumber);
             if (count > 0) {
                 for (int i = 0; i < count; ++i) {
-                    printf("%s\n", filenames[i]->d_name);
+                    printf("%s\n", filenames[i]);
                     free(filenames[i]);
                 }
                 free(filenames);
@@ -169,7 +169,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             PrintCWDError(true, errorNumber);
             return EXIT_FAILURE;
         }
-        */
+*/
     } else if (strcmp(tokens[0], "cd") == 0) {
         //TODO Support file paths with spaces
         if (tokens[1] != NULL) {

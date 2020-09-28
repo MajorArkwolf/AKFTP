@@ -26,13 +26,21 @@ int ChangeCurrentWorkingDirectory(const char *newDirectory) {
     return errorNumber;
 }
 
-int GetListOfFiles(char *directoryPath, struct dirent **filenames, int *errorNumber) {
-    struct dirent** nameList;
+int GetListOfFiles(char *directoryPath, char **filenames, int *errorNumber) {
+    struct dirent **nameList;
     int n = scandir(directoryPath, &nameList, NULL, alphasort);
-    if(n == -1)
-    {
+    if (n == -1) {
         *errorNumber = errno;
-
+    } else if (n == 0) {
+        free(filenames);
+    } else if (n > 0) {
+        filenames = calloc(n, sizeof(char*));
+        for (int i = 0; i < n; ++i) {
+            filenames[i] = calloc(256, sizeof(char));
+            *filenames[i] = *nameList[i]->d_name;
+            free(nameList[i]);
+        }
+        free(nameList);
     }
     return n;
 }
