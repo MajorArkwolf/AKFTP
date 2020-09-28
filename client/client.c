@@ -1,4 +1,3 @@
-
 #include "client.h"
 #include <string.h>
 #include <stdlib.h>
@@ -9,7 +8,10 @@
 #include <errno.h>
 #include <dirent.h>
 
+
 #define MESSAGE_SIZE 1024
+
+#define PORT "3490" // the port client will be connecting to
 
 int RunClient() {
     bool shouldContinue = true;

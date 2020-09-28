@@ -26,6 +26,10 @@ if(UNIX AND NOT APPLE)
     set(LINUX TRUE)
 endif()
 
+if (APPLE)
+    set(CMAKE_MACOSX_RPATH 1)
+endif()
+
 
 # Set build output directories.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -39,6 +43,7 @@ add_executable(${PROJECT_NAME}d)
 add_subdirectory(client)
 add_subdirectory(server)
 add_subdirectory(shared)
+add_subdirectory(lib)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-shared)
-target_link_libraries(${PROJECT_NAME}d PRIVATE ${PROJECT_NAME}-shared)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-shared json-c)
+target_link_libraries(${PROJECT_NAME}d PRIVATE ${PROJECT_NAME}-shared json-c)
