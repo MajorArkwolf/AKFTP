@@ -56,10 +56,14 @@ int StartClient(int argc, char **argv) {
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
+    char ip_address[15];
 
     if (argc != 2) {
-        fprintf(stderr, "usage: client hostname\n");
-        exit(1);
+//        fprintf(stderr, "usage: client hostname\n");
+//        exit(1);
+        strcpy(ip_address, "127.0.0.1");
+    } else {
+        strcpy(ip_address, argv[1]);
     }
 
     memset(&hints, 0, sizeof hints);
