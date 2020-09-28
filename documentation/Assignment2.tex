@@ -24,7 +24,7 @@
 	[5.5cm]     
 	\end{center}
 	\begin{flushright}
-		\textsc{\Large Kiera Gibson\\XXXXXXXX}\\
+		\textsc{\Large Kiera Gibson\\33582181}\\
 		[0.5cm]
 		\textsc{\Large Peter S. Crabbe\\32019269}\\
 		[0.5cm]
@@ -54,15 +54,42 @@
 }
 
 \section{Information}
+Design and implement a simple network protocol that can be used to download files from a remote site and to upload files to a remote site, and a client and a server programs that communicate using that protocol. The protocol should use TCP as its transport layer protocol. The server must be able to serve multiple client requests simultaneously. For simplicity, do not consider any authentication process in this project, hence the server will provide its service to any client with the right site address and port number.
 
 \section{Self Diagnosis and Evaluation}
 
 \section{Solution Breakdown}
 
 \section{Protocol}
+The protocols listed all use the existing TCP protocol implemented by the POSIX standards.
+\subsection{Send Protocol}
+The send protocol that is implemented following these rules.
+\begin{enumerate}
+    \item Attempt to send the size of the data the recipient needs to receive.
+    \item Await a response to confirm the recipient is ready. If no value or a false value is received, terminate send.
+    \item Recipient sends confirmation that it is ready.
+    \item Send entire payload over send() socket command.
+    \item Return 0 if success otherwise return -1.
+\end{enumerate}
+
+\subsection{Receive Protocol}
+The receive protocol that is implemented following these rules.
+\begin{enumerate}
+    \item Wait for sender to confirm the size of the data.
+    \item If size is received acknowledge by sending true, else send false and terminate receive process.
+    \item Await sender to begin transfer of data.
+    \item If receive error, terminate; else update buffer parameter and return the size to the
+\end{enumerate}
 
 \section{Test Evidence}
+\subsection{Unit Testing}
 
+\subsection{Integration Testing}
+
+\subsection{User Testing}
+
+
+\newpage
 \section{Source Code Listing}
 \subsection{Client}
     \subsubsection{main.c}

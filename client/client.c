@@ -53,4 +53,3 @@ int RunClient() {
 int StartClient(int argc, char **argv) {
     RunClient();
 }
-
