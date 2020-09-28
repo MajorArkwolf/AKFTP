@@ -7,3 +7,12 @@
  * @return -1 If exit or quit called, 0 otherwise
  */
 int HandleCommand(char **tokens, int numTokens);
+
+/**
+ * Returns the current working directory of the client or prints any errors that occur
+ * @return A char* containing the current path to the working directory of the client, or NULL if there was an issue
+ */
+char* GetClientWorkingDirectory();
+
+char* GetServerWorkingDirectory();
+

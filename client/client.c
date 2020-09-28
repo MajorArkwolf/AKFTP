@@ -28,7 +28,7 @@ int RunClient() {
         if (numTokens > 0)
         {
             commandResult = HandleCommand(tokens, numTokens) ;
-            if(commandResult == -1)
+            if(commandResult == 1)
             {
                 shouldContinue = false;
             }
