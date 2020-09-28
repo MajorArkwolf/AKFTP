@@ -13,7 +13,7 @@ char *GetCurrentWorkingDirectory(int *errorNumber);
  * @param newDirectory The relative or full path of the directory to set the current working directory of the program to
  * @return 0 If success, error number set to errno by chdir otherwise
  */
-int ChangeCurrentWorkingDirectory(char *newDirectory);
+int ChangeCurrentWorkingDirectory(const char *newDirectory);
 
 /**
  * Takes in a directory path, and a char** array to place file names found into.
