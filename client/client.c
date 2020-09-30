@@ -57,16 +57,16 @@ int StartClient(int argc, char **argv) {
     int rv;
     char s[INET6_ADDRSTRLEN];
 
-    if (argc != 2) {
+    /*if (argc != 2) {
         fprintf(stderr, "usage: client hostname\n");
         exit(1);
-    }
+    }*/
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo("127.0.0.1", PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
@@ -119,10 +119,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         //max size of request is (FILENAME_MAX * sizeof(char)) if successful
         //return errno otherwise
         json_object *response = json_tokener_parse(response_data);
-        int errorNumber = json_object_get_int((json_object_object_get(response,"error")));
+        int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
         //char* serverWorkingDirectory = GetServerWorkingDirectory(&errorNumber);
         if (errorNumber == 0) {
-            const char *cwd = json_object_get_string(json_object_object_get(response,"cwd"));
+            const char *cwd = json_object_get_string(json_object_object_get(response, "cwd"));
             printf("%s\n", cwd);
             free(response);
             return 0;
@@ -146,17 +146,22 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
 
 
     } else if (strcmp(tokens[0], "ldir") == 0) {
-        /*int errorNumber = 0;
+        int errorNumber = 0;
         char *clientWorkingDirectory = GetCurrentWorkingDirectory(&errorNumber);
         if (clientWorkingDirectory != NULL) {
             char **filenames;
             int count = GetListOfFiles(clientWorkingDirectory, filenames, &errorNumber);
             if (count > 0) {
-                for (int i = 0; i < count; ++i) {
-                    printf("%s\n", filenames[i]);
-                    free(filenames[i]);
+                if (filenames != NULL) {
+                    for (int i = 0; i < count; ++i) {
+                        if(filenames[i] != NULL)
+                        {
+                            printf("%s\n", filenames[i]);
+                            free(filenames[i]);
+                        }
+                    }
+                    free(filenames);
                 }
-                free(filenames);
             }
 
             free(clientWorkingDirectory);
@@ -165,7 +170,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             PrintCWDError(true, errorNumber);
             return EXIT_FAILURE;
         }
-*/
+
     } else if (strcmp(tokens[0], "cd") == 0) {
         //TODO Support file paths with spaces
         if (tokens[1] != NULL) {
@@ -178,7 +183,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             //send tokens[1] to server with command to change directory
             //server will return error number, 0 if no error
             json_object *response = json_tokener_parse(response_data);
-            int errorNumber = json_object_get_int((json_object_object_get(response,"error")));
+            int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
             if (errorNumber != 0) {
                 PrintCHDIRError(true, errorNumber);
             } else {
