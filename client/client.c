@@ -147,10 +147,11 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
 
     } else if (strcmp(tokens[0], "ldir") == 0) {
         int errorNumber = 0;
+        int count = 0;
         char *clientWorkingDirectory = GetCurrentWorkingDirectory(&errorNumber);
         if (clientWorkingDirectory != NULL) {
-            char **filenames;
-            int count = GetListOfFiles(clientWorkingDirectory, filenames, &errorNumber);
+            char **filenames = NULL;
+            filenames = GetListOfFiles(clientWorkingDirectory, &count, &errorNumber);
             if (count > 0) {
                 if (filenames != NULL) {
                     for (int i = 0; i < count; ++i) {

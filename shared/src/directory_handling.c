@@ -26,12 +26,15 @@ int ChangeCurrentWorkingDirectory(const char *newDirectory) {
     return errorNumber;
 }
 
-int GetListOfFiles(char *directoryPath, char **filenames, int *errorNumber) {
+char** GetListOfFiles(char *directoryPath, int *size, int *errorNumber) {
     struct dirent **nameList;
+    char **filenames = NULL;
     int n = scandir(directoryPath, &nameList, NULL, alphasort);
+    *size = n;
     if (n == -1) {
         *errorNumber = errno;
     } else if (n == 0) {
+        return NULL;
         free(filenames);
     } else if (n > 0) {
         filenames = (char**) calloc(n, sizeof(char*));
@@ -42,6 +45,6 @@ int GetListOfFiles(char *directoryPath, char **filenames, int *errorNumber) {
         }
         free(nameList);
     }
-    return n;
+    return filenames;
 }
 
