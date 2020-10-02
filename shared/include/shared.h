@@ -69,3 +69,9 @@ const char* unpack_command_from_json(struct json_object* json);
  * @return true if file exists.
  */
 bool check_if_file_exists(const char *file_name);
+
+void serialize_file(json_object *json);
+
+void deserialize_file(json_object *json, json_object *response);
+
+void request_file(int socket, json_object *json, const char* file_location);

@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <json_tokener.h>
+#include <B
 
 
 // get sockaddr, IPv4 or IPv6:
@@ -71,4 +73,76 @@ const char* unpack_command_from_json(struct json_object* json) {
 bool check_if_file_exists(const char *file_name) {
     struct stat buffer;
     return (stat (file_name, &buffer) == 0);
+}
+void serialize_file(json_object *json) {
+    FILE *fp = NULL;
+    size_t size = 0;
+    long lSize;
+    char *buffer;
+    const char *filename = json_object_get_string(json_object_object_get(json, "filename"));
+    fp = fopen(filename, "rb");
+    if (fp == NULL) {
+        perror("Error: File did not open.");
+        return;
+    }
+    fseek(fp, 0L, SEEK_END);
+    lSize = ftell(fp);
+    rewind(fp);
+/* allocate memory for entire content */
+    buffer = calloc(1, lSize + 1);
+    if (!buffer) {
+        fclose(fp), fputs("memory alloc fails", stderr), exit(1);
+    }
+/* copy the file into the buffer */
+    if (1 != fread(buffer, lSize, 1, fp)) {
+        fclose(fp), free(buffer), fputs("entire read fails", stderr), exit(1);
+    }
+    fclose(fp);
+
+    //char *dec = b64_encode(buffer, strlen(buffer));
+    json_object *filedata = json_object_new_string(buffer);
+    json_object_object_add(json, "filedata", filedata);
+    free(buffer);
+}
+
+void deserialize_file(json_object *json, json_object *response) {
+    int errorNumber = 0;
+    const char *filename = json_object_get_string(json_object_object_get(json, "filename"));
+    const char *filedata = json_object_get_string(json_object_object_get(json, "filedata"));
+    //unsigned char* decoded = b64_decode(filedata, sizeof(filedata));
+    //char * char_decoded = b64_buf_realloc(decoded, sizeof(decoded));
+    FILE *fp = NULL;
+    fp = fopen(filename, "w");
+    if (fp == NULL) {
+        errorNumber = -1;
+        json_object *error = json_object_new_int(errorNumber);
+        fclose(fp);
+        json_object_object_add(response, "error", error);
+        return;
+    }
+    fputs(filedata, fp);
+    fclose(fp);
+    json_object *error = json_object_new_int(errorNumber);
+    json_object_object_add(response, "error", error);
+}
+
+void request_file(const int socket, json_object *json, const char* file_location) {
+    json_object *json_file = json_object_new_string(file_location);
+    json_object_object_add(json, "filename", json_file);
+    size_t size = 0;
+    const char *data = json_object_to_json_string_length(json, 0, &size);
+    send_large(socket, data, size, 0);
+    char *response_data = NULL;
+    receive_large(socket, &response_data, 0);
+    if (response_data == NULL) {
+        perror("Server responded with no data");
+        return;
+    }
+    json_object *response = json_tokener_parse(response_data);
+    free(response_data);
+    if (response == NULL) {
+        perror("Failed to construct JSON from server data.");
+        return;
+    }
+    deserialize_file(response, response);
 }
