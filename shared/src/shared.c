@@ -135,9 +135,11 @@ void deserialize_file(json_object *json, json_object *response) {
     uint64_t en_size = json_object_get_uint64(json_object_object_get(json, "ensize"));
     uint64_t de_size = json_object_get_uint64(json_object_object_get(json, "desize"));
     size_t new_size = (size_t)de_size;
+    if (encoded_data == NULL) {
+        perror("File data not found.");
+        return;
+    }
     char *filedata = decode_string(encoded_data, en_size, &new_size);
-    //unsigned char* decoded = b64_decode(filedata, sizeof(filedata));
-    //char * char_decoded = b64_buf_realloc(decoded, sizeof(decoded));
     FILE *fp = NULL;
     fp = fopen(filename, "w");
     if (fp == NULL) {
