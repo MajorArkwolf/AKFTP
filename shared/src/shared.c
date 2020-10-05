@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <json_tokener.h>
+#include <libbase64.h>
 
 
 // get sockaddr, IPv4 or IPv6:
@@ -95,7 +96,7 @@ void serialize_file(json_object *json) {
     long lSize;
     char *buffer;
     const char *filename = json_object_get_string(json_object_object_get(json, "filename"));
-    fp = fopen(filename, "rb");
+    fp = fopen(filename, "r");
     if (fp == NULL) {
         perror("Error: File did not open.");
         return;
@@ -103,27 +104,36 @@ void serialize_file(json_object *json) {
     fseek(fp, 0L, SEEK_END);
     lSize = ftell(fp);
     rewind(fp);
-/* allocate memory for entire content */
-    buffer = calloc(1, lSize + 1);
+    /* allocate memory for entire content */
+    buffer = calloc(lSize + 1, sizeof(char));
     if (!buffer) {
         fclose(fp), fputs("memory alloc fails", stderr), exit(1);
     }
-/* copy the file into the buffer */
+    /* copy the file into the buffer */
     if (1 != fread(buffer, lSize, 1, fp)) {
         fclose(fp), free(buffer), fputs("entire read fails", stderr), exit(1);
     }
     fclose(fp);
-
-    //char *dec = b64_encode(buffer, strlen(buffer));
-    json_object *filedata = json_object_new_string(buffer);
-    json_object_object_add(json, "filedata", filedata);
+    printf("%s\n", buffer);
+    size_t new_size = 0;
+    char *encoded_string = encode_string(buffer, lSize, &new_size);
+    json_object *file_data = json_object_new_string(encoded_string);
+    json_object_object_add(json, "filedata", file_data);
+    json_object *de_size = json_object_new_uint64(sizeof(buffer));
+    json_object_object_add(json, "desize", de_size);
+    json_object *en_size = json_object_new_uint64(new_size);
+    json_object_object_add(json, "ensize", en_size);
     free(buffer);
+    free(encoded_string);
 }
 
 void deserialize_file(json_object *json, json_object *response) {
     int errorNumber = 0;
     const char *filename = json_object_get_string(json_object_object_get(json, "filename"));
-    const char *filedata = json_object_get_string(json_object_object_get(json, "filedata"));
+    const char *encoded_data = json_object_get_string(json_object_object_get(json, "filedata"));
+    size_t en_size = json_object_get_uint64(json_object_object_get(json, "ensize"));
+    size_t de_size = json_object_get_uint64(json_object_object_get(json, "desize"));
+    char *filedata = decode_string(encoded_data, en_size, &de_size);
     //unsigned char* decoded = b64_decode(filedata, sizeof(filedata));
     //char * char_decoded = b64_buf_realloc(decoded, sizeof(decoded));
     FILE *fp = NULL;
@@ -139,6 +149,7 @@ void deserialize_file(json_object *json, json_object *response) {
     fclose(fp);
     json_object *error = json_object_new_int(errorNumber);
     json_object_object_add(response, "error", error);
+    free(filedata);
 }
 
 void request_file(const int socket, json_object *json, const char* file_location) {
@@ -147,17 +158,39 @@ void request_file(const int socket, json_object *json, const char* file_location
     size_t size = 0;
     const char *data = json_object_to_json_string_length(json, 0, &size);
     send_large(socket, data, size, 0);
-    char *response_data = NULL;
+    unsigned char *response_data = NULL;
     receive_large(socket, &response_data, 0);
     if (response_data == NULL) {
         perror("Server responded with no data");
         return;
     }
-    json_object *response = json_tokener_parse(response_data);
+    json_object *response = json_tokener_parse((char *)response_data);
     free(response_data);
     if (response == NULL) {
         perror("Failed to construct JSON from server data.");
         return;
     }
     deserialize_file(response, response);
+}
+
+char *encode_string(char *input, size_t input_size, size_t *output_size) {
+    char *output = NULL;
+    struct base64_state state;
+    *output_size = input_size * (4 / 3) + 1000;
+    output = calloc(*output_size, sizeof(char));
+    base64_stream_encode_init(&state, 0);
+    base64_encode(input, input_size, output, output_size, 0);
+    printf("%s\n", output);
+    return output;
+}
+
+char *decode_string(char *input, size_t input_size, size_t *output_size) {
+    char *output = NULL;
+    struct base64_state state;
+    base64_stream_decode_init(&state, 0);
+    //*output_size = input_size * (3 / 4) + 1;
+    output = calloc(*output_size, sizeof(char));
+    base64_decode(input, input_size, output, output_size, 0);
+    printf("%s\n", output);
+    return output;
 }

@@ -75,3 +75,7 @@ void serialize_file(json_object *json);
 void deserialize_file(json_object *json, json_object *response);
 
 void request_file(int socket, json_object *json, const char* file_location);
+
+char *decode_string(char *input, size_t input_size, size_t *output_size);
+
+char *encode_string(char *input, size_t input_size, size_t *output_size);

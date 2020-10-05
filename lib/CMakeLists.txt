@@ -16,4 +16,5 @@ add_subdirectory(base64)
 # Ignore warnings from library headers.
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE
     json-c/
+    base64/
 )
