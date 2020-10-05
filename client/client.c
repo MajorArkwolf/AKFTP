@@ -115,6 +115,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     } else if (strcmp(tokens[0], "pwd") == 0) {
         pack_command_to_json(json, "pwd");
         const char *data = json_object_to_json_string_length(json, 0, &size);
+        if (data == NULL) {
+            perror("Serialising data failed in PWD function.");
+            return -1;
+        }
         send_large(socket, data, size, 0);
         receive_large(socket, &response_data, 0);
         //Request string from server about current working directory
@@ -130,6 +134,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             return 0;
         } else {
             PrintCWDError(false, errorNumber);
+            free(response);
         }
 
     } else if (strcmp(tokens[0], "lpwd") == 0) {
@@ -175,6 +180,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             json_object *dir = json_object_new_string(tokens[1]);
             json_object_object_add(json, "dir", dir);
             const char *data = json_object_to_json_string_length(json, 0, &size);
+            if (data == NULL) {
+                perror("Serialising data failed in cd function.");
+                return -1;
+            }
             send_large(socket, data, size, 0);
             receive_large(socket, &response_data, 0);
             //send tokens[1] to server with command to change directory
@@ -223,8 +232,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
         if (errorNumber == -1) {
             perror("Failed to upload");
+            free(response);
             return -1;
         }
+        free(response);
     } else {
         printf("Unknown command. Type 'help' to get the list of commands.\n");
     }
