@@ -31,7 +31,7 @@ ssize_t send_large(int socket, const void *data, size_t data_size, int flags);
  * @param flags to be passed into send()
  * @return the size of the data.
  */
-ssize_t receive_large(int socket, char **buffer, int flags);
+ssize_t receive_large(int socket, unsigned char **buffer, int flags);
 
 /**
  * Get the string from a key value in json

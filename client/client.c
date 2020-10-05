@@ -32,8 +32,6 @@ int RunClient(int socket) {
     while (shouldContinue == true) {
         int numTokens = 0;
         int commandResult = 0;
-
-        size_t size;
         printf(">");
         fgets(message, MESSAGE_SIZE, stdin);
         strtok(message, "\n");
@@ -108,7 +106,7 @@ int StartClient(int argc, char **argv) {
 
 int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     size_t size = 0;
-    char *response_data = NULL;
+    unsigned char *response_data = NULL;
     if (strcmp(tokens[0], "quit") == 0 || strcmp(tokens[0], "exit") == 0) {
         return -1;
     } else if (strcmp(tokens[0], "help") == 0) {
@@ -122,7 +120,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         //Request string from server about current working directory
         //max size of request is (FILENAME_MAX * sizeof(char)) if successful
         //return errno otherwise
-        json_object *response = json_tokener_parse(response_data);
+        json_object *response = json_tokener_parse((char *)response_data);
         int errorNumber = json_object_get_int((json_object_object_get(response,"error")));
         //char* serverWorkingDirectory = GetServerWorkingDirectory(&errorNumber);
         if (errorNumber == 0) {
@@ -181,7 +179,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             receive_large(socket, &response_data, 0);
             //send tokens[1] to server with command to change directory
             //server will return error number, 0 if no error
-            json_object *response = json_tokener_parse(response_data);
+            json_object *response = json_tokener_parse((char *)response_data);
             int errorNumber = json_object_get_int((json_object_object_get(response,"error")));
             if (errorNumber != 0) {
                 PrintCHDIRError(true, errorNumber);
@@ -221,7 +219,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         const char *data = json_object_to_json_string_length(json, 0, &size);
         send_large(socket, data, size, 0);
         receive_large(socket, &response_data, 0);
-        json_object *response = json_tokener_parse(response_data);
+        json_object *response = json_tokener_parse((char *)response_data);
         int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
         if (errorNumber == -1) {
             perror("Failed to upload");
@@ -230,6 +228,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     } else {
         printf("Unknown command. Type 'help' to get the list of commands.\n");
     }
+    free(response_data);
     return 0;
 }
 

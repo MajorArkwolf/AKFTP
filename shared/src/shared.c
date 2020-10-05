@@ -17,8 +17,8 @@ void *get_in_addr(struct sockaddr *sa)
 }
 
 ssize_t send_large(int socket, const void *data, size_t data_size, int flags) {
-    unsigned file_size = data_size;
-    send(socket, &file_size, sizeof(int), flags);
+    u_int32_t file_size = (u_int32_t)data_size;
+    send(socket, &file_size, sizeof(u_int32_t), flags);
     bool rec = false;
     if ((recv(socket, &rec, MAXDATASIZE-1, flags)) == -1) {
         perror("recv");
@@ -28,25 +28,42 @@ ssize_t send_large(int socket, const void *data, size_t data_size, int flags) {
         perror("Failed to acknowladge large send.");
         return -1;
     }
-    send(socket, data, file_size, flags);
+    u_int32_t sent_size = 0;
+    while (file_size != sent_size) {
+        u_int32_t last_send_size = (u_int32_t)send(socket, data, file_size, flags);
+        if (last_send_size == -1) {
+            perror("send");
+            return -1;
+        }
+        sent_size += last_send_size;
+    }
     return 0;
 }
 
-ssize_t receive_large(int socket, char **buffer, int flags) {
+ssize_t receive_large(int socket, unsigned char **buffer, int flags) {
     free(*buffer);
-    unsigned file_size = 0;
+    u_int32_t file_size = 0;
     bool rec = false;
     if ((recv(socket, &file_size, MAXDATASIZE-1, flags)) == -1) {
         perror("recv");
         send(socket, &rec, sizeof(bool), flags);
         return -1;
     }
-    *buffer = calloc(file_size, sizeof(char));
+    *buffer = calloc(file_size, sizeof(unsigned char));
     rec = true;
-    send(socket, &rec, sizeof(bool), flags);
-    if ((recv(socket, *buffer, file_size, 0)) == -1) {
-        perror("recv");
+    if (send(socket, &rec, sizeof(bool), flags) == -1) {
+        perror("send");
         return -1;
+    }
+    u_int32_t current_size = 0;
+
+    while (file_size != current_size) {
+        u_int32_t rec_size = (u_int32_t)recv(socket, *buffer, file_size, 0);
+        if (rec_size == -1) {
+            perror("recv");
+            return -1;
+        }
+        current_size += rec_size;
     }
     return file_size;
 }
