@@ -94,7 +94,7 @@ int StartClient(int argc, char **argv) {
 
     if (p == NULL) {
         fprintf(stderr, "client: failed to connect\n");
-        return EXIT_FAILURE;
+        return -1;
     }
 
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *) p->ai_addr),
@@ -140,10 +140,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         if (clientWorkingDirectory != NULL) {
             printf("%s\n", clientWorkingDirectory);
             free(clientWorkingDirectory);
-            return EXIT_SUCCESS;
+            return 0;
         } else {
             PrintCWDError(true, errorNumber);
-            return EXIT_FAILURE;
+            return -1;
         }
 
     } else if (strcmp(tokens[0], "dir") == 0) {
@@ -186,10 +186,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             if (errorNumber != 0) {
                 PrintCHDIRError(true, errorNumber);
             } else {
-                return EXIT_SUCCESS;
+                return 1;
             }
         }
-        return EXIT_FAILURE;
+        return -1;
 
     } else if (strcmp(tokens[0], "lcd") == 0) {
         //TODO Support file paths with spaces
@@ -198,10 +198,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             if (errorNumber != 0) {
                 PrintCHDIRError(true, errorNumber);
             } else {
-                return EXIT_SUCCESS;
+                return 0;
             }
         }
-        return EXIT_FAILURE;
+        return -1;
     } else if (strcmp(tokens[0], "get") == 0) {
         pack_command_to_json(json, "get");
         request_file(socket, json,tokens[1]);
