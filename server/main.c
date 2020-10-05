@@ -148,7 +148,7 @@ int main(void)
 
         if (/**!fork()**/ 1) { // this is the child process
             bool close_program = false;
-            unsigned char *buf = NULL;
+            char *buf = NULL;
             int numbytes = 0;
             json_object *json = NULL;
             json_object *response = NULL;
@@ -159,11 +159,11 @@ int main(void)
                     close(new_fd);
                     exit(1);
                 }
-                json = json_tokener_parse((char *)buf);
+                json = json_tokener_parse(buf);
                 response = HandleRequest(json);
                 size_t size;
                 const char *data = json_object_to_json_string_length(response, 0, &size);
-                send_large (new_fd, data, size, 0);
+                send_large(new_fd, data, size, 0);
                 free(json);
                 free(response);
             }
