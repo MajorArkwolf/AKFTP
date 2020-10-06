@@ -181,6 +181,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             if (errorNumber == 0) {
                 if (count > 0) {
                     if (filenames != NULL) {
+                        printf("(%s)\n", clientWorkingDirectory);
                         for (int i = 0; i < count; ++i) {
                             if (filenames[i] != NULL) {
                                 printf("%s\n", filenames[i]);
