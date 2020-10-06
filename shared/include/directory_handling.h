@@ -1,5 +1,6 @@
 #pragma once
 struct dirent;
+
 /**
  * Returns the current working directory of the program calling this or NULL if an error occurred
  * @param errorNumber A pointer to an integer to set to the value of the error number returned by getcwd
@@ -12,7 +13,7 @@ char *GetCurrentWorkingDirectory(int *errorNumber);
  * @param newDirectory The relative or full path of the directory to set the current working directory of the program to
  * @return 0 If success, error number set to errno by chdir otherwise
  */
-int ChangeCurrentWorkingDirectory(char *newDirectory);
+int ChangeCurrentWorkingDirectory(const char *newDirectory);
 
 /**
  * Takes in a directory path, and a char** array to place file names found into.
@@ -21,4 +22,4 @@ int ChangeCurrentWorkingDirectory(char *newDirectory);
  * @param errorNumber The error number set into errno by
  * @return The number of filenames found and placed into the filenames array, -1 if an error occurred
  */
-int GetListOfFiles(char *directoryPath, struct dirent **filenames, int *errorNumber);
+int GetListOfFiles(char *directoryPath, char **filenames, int *errorNumber);

@@ -11,8 +11,10 @@ add_compile_options(
     $<$<CXX_COMPILER_ID:MSVC>:/W0>
 )
 add_subdirectory(json-c)
+add_subdirectory(base64)
 
 # Ignore warnings from library headers.
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE
     json-c/
+    base64/
 )

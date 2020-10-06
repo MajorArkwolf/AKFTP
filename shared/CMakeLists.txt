@@ -33,13 +33,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG    ${PROJECT_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${PROJECT_BINARY_DIR})
 
 
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME} STATIC
         src/shared.c
         src/token.c
         src/directory_handling.c
         )
 
-
 target_include_directories(${PROJECT_NAME} INTERFACE include)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
+
 
