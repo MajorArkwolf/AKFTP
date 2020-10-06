@@ -8,6 +8,7 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{tabulary}
+\usepackage{pdfpages}
 \newcommand\myicon[1]{{\color{#1}\rule{2ex}{2ex}}}
 \newcommand{\myfolder}[2]{\myicon{#1}\ {#2}}
 \usepackage{minted}
@@ -50,7 +51,7 @@
 	\begin{center}
     \line(1,0){300}\\
     [0.65cm]
-	\huge{\bfseries Assignment II}\\
+	\huge{\bfseries ICT374 - Assignment II}\\
 	\line(1,0){300}\\
 	\textsc{\Large FTP Server and Client}\\
 	\textsc{\LARGE \today}\\
@@ -65,9 +66,9 @@
 \end{titlepage}
 
 \tableofcontents
-\newpage
 \section{Project Declaration}
-
+\includepdf[pages=-]{ICT374ProjectDeclaration}
+\newpage
 \section{List of Files}
 \dirtree{%
 .1 \myfolder{red}{Assignment 2}.
@@ -99,14 +100,18 @@
 Design and implement a simple network protocol that can be used to download files from a remote site and to upload files to a remote site, and a client and a server programs that communicate using that protocol. The protocol should use TCP as its transport layer protocol. The server must be able to serve multiple client requests simultaneously. For simplicity, do not consider any authentication process in this project, hence the server will provide its service to any client with the right site address and port number.
 
 \section{Self Diagnosis and Evaluation}
-
+\begin{itemize}
+\item The way we have implemented our code makes it far more portable then and is also cross platform from macOS to Linux it is however more complicated and with out error checking, possibly more error prone.
+\item Using a shared library between our client and our server gives us the ability to keep shared code consistent between them with little effort.
+\item Using a third party library for serialisation and deserialisation means that our backbone is robust and gives us confidence to focus on other areas.
+\end{itemize}
 
 \section{Solution Breakdown}
 The solution devised is that there is a client and a server program however a large chunk of code is required in both. To ensure that the client and the server followed the protocols and any under the hood changes to one side didn't break the other. This is solved by having our own shared library that both programs use. By doing it this way refactoring chunks of code can be achieved with out breaking the functions calling them.\\
 
 The underlying data structure for communication from client and server is JSON. This allows us to use key data pairs. If a key exists the data corresponding to the key must exist. This ensures that parsing data is simple, safe and effective.\\
 
-A short fall in using JSON is that any string must only be terminated once. This means that binary data is dangerous storing in a json string. To ensure avoiding this limitation we encode our data into base64. While this can give us a 40\% overhead on file size at the absolute worst, this ensures that the JSON payload doesn't break.
+A short fall in using JSON is that any string must only be terminated once. This means that binary data is dangerous being stored in a json string. To ensure avoiding this limitation, we encode our data into base64. While this can give us a 40\% overhead on file size at the absolute worst, this ensures that the JSON payload doesn't break.
 
 \section{Protocol}
 \subsection{Commands and JSON}
@@ -184,6 +189,9 @@ The following dependencies are required for Linux.
     \item gcc or clang compiler
 \end{itemize}
 \subsection{Building}
+\begin{center}
+\textbf{Please ensure you have the dependencies before you continue.}
+\end{center}
 To generate the build scripts please run from the root directory....
 \begin{lstlisting}
 cmake -S . -B build -D CMAKE_BUILD_TYPE=Release    
@@ -289,7 +297,7 @@ You will now have 2 unix executables, myftp is the client program and myftpd is 
 \subsection{Client}
     \subsubsection{main.c}
 	\lstinputlisting[language=C]{../client/main.c}
-	\subsubsection{shared.c}
+	\subsubsection{client.c}
 	\lstinputlisting[language=C]{../client/client.c}
 \subsection{Server}
     \subsubsection{main.c}
@@ -308,7 +316,7 @@ JSON library used under MIT license.\\
 Thank you to all the contributors.\\
 https://github.com/json-c/json-c/\\
 \subsection{base64}
-Base 64 encorder used to encode our data streams.\\
+Base 64 encorder used to encode and decode our data streams.\\
 Licensed under BSD-Clause "Simplified" License.\\
 Thank you to all the contributors.\\
 https://github.com/aklomp/base64\\
