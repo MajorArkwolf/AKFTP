@@ -14,7 +14,6 @@ char *GetCurrentWorkingDirectory(int *errorNumber) {
     } else {
         errorNumber = 0;
     }
-
     return buffer;
 }
 

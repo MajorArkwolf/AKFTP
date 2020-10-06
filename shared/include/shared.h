@@ -70,12 +70,42 @@ const char* unpack_command_from_json(struct json_object* json);
  */
 bool check_if_file_exists(const char *file_name);
 
-void serialize_file(json_object *json);
+/**
+ * Take a json file that contains filedata, ensize and desize, if all those fields are entered it will serialise the data.
+ * @param json object that contains all the relevent option.
+ * @return
+ */
+int serialize_file(json_object *json);
 
-void deserialize_file(json_object *json, json_object *response);
+/**
+ * Take a json file that contains filedata, ensize and desize, if all those fields are entered it will deserialise the data.
+ * @param json object that contains all the relevent option.
+ * @return
+ */
+int deserialize_file(json_object *json, json_object *response);
 
+/**
+ * Request the given file from json filename object tag.
+ * @param socket id to the given socket.
+ * @param json object that contains the request
+ * @param file_location the location of the given file relative the servers pwd
+ */
 void request_file(int socket, json_object *json, const char* file_location);
 
+/**
+ * De-encode a string, allows strings with null terminators to be sent with out issues. Your job to free the return string
+ * @param input the string to decode.
+ * @param input_size the length of the string decoded.
+ * @param output_size the length of the string encoded
+ * @return char * array, you must free this yourself.
+ */
 char *decode_string(char *input, size_t input_size, size_t *output_size);
 
+/**
+ * Encode a string, allows strings with null terminators to be sent with out issues. Your job to free the return string
+ * @param input the string to encode.
+ * @param input_size the length of the string encoded.
+ * @param output_size the length of the string decoded
+ * @return char * array, you must free this yourself.
+ */
 char *encode_string(char *input, size_t input_size, size_t *output_size);

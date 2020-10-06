@@ -93,7 +93,7 @@ bool check_if_file_exists(const char *file_name) {
     struct stat buffer;
     return (stat (file_name, &buffer) == 0);
 }
-void serialize_file(json_object *json) {
+int serialize_file(json_object *json) {
     FILE *fp = NULL;
     uint64_t lSize = 0;
     char *buffer = NULL;
@@ -101,7 +101,7 @@ void serialize_file(json_object *json) {
     fp = fopen(filename, "r");
     if (fp == NULL) {
         perror("Error: File did not open.");
-        return;
+        return -1;
     }
     fseek(fp, 0L, SEEK_END);
     lSize = ftell(fp);
@@ -110,10 +110,12 @@ void serialize_file(json_object *json) {
     buffer = calloc(lSize + 1, sizeof(char));
     if (!buffer) {
         fclose(fp), fputs("memory alloc fails", stderr), exit(1);
+        return -1;
     }
     /* copy the file into the buffer */
     if (1 != fread(buffer, lSize, 1, fp)) {
         fclose(fp), free(buffer), fputs("entire read fails", stderr), exit(1);
+        return -1;
     }
     fclose(fp);
     size_t new_size = 0;
@@ -126,9 +128,10 @@ void serialize_file(json_object *json) {
     json_object_object_add(json, "ensize", en_size);
     free(buffer);
     free(encoded_string);
+    return 0;
 }
 
-void deserialize_file(json_object *json, json_object *response) {
+int deserialize_file(json_object *json, json_object *response) {
     int errorNumber = 0;
     const char *filename = json_object_get_string(json_object_object_get(json, "filename"));
     const char *encoded_data = json_object_get_string(json_object_object_get(json, "filedata"));
@@ -137,7 +140,7 @@ void deserialize_file(json_object *json, json_object *response) {
     size_t new_size = (size_t)de_size;
     if (encoded_data == NULL) {
         perror("File data not found.");
-        return;
+        return -1;
     }
     char *filedata = decode_string(encoded_data, en_size, &new_size);
     FILE *fp = NULL;
@@ -147,13 +150,14 @@ void deserialize_file(json_object *json, json_object *response) {
         json_object *error = json_object_new_int(errorNumber);
         fclose(fp);
         json_object_object_add(response, "error", error);
-        return;
+        return -1;
     }
     fwrite(filedata, de_size, 1, fp);
     fclose(fp);
     json_object *error = json_object_new_int(errorNumber);
     json_object_object_add(response, "error", error);
     free(filedata);
+    return 0;
 }
 
 void request_file(const int socket, json_object *json, const char* file_location) {
