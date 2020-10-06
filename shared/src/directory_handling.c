@@ -25,22 +25,25 @@ int ChangeCurrentWorkingDirectory(const char *newDirectory) {
     return errorNumber;
 }
 
-int GetListOfFiles(char *directoryPath, char **filenames, int *errorNumber) {
+char** GetListOfFiles(char *directoryPath, int *size, int *errorNumber) {
     struct dirent **nameList;
+    char **filenames = NULL;
     int n = scandir(directoryPath, &nameList, NULL, alphasort);
+    *size = n;
     if (n == -1) {
         *errorNumber = errno;
     } else if (n == 0) {
+        return NULL;
         free(filenames);
     } else if (n > 0) {
-        filenames = calloc(n, sizeof(char*));
+        filenames = (char**) calloc(n, sizeof(char*));
         for (int i = 0; i < n; ++i) {
-            filenames[i] = calloc(256, sizeof(char));
-            *filenames[i] = *nameList[i]->d_name;
+            filenames[i] = (char*)calloc(1024, sizeof(char));
+            strcpy(filenames[i], nameList[i]->d_name);
             free(nameList[i]);
         }
         free(nameList);
     }
-    return n;
+    return filenames;
 }
 

@@ -15,18 +15,18 @@
 #include <json_tokener.h>
 #include <string.h>
 #include "directory_handling.h"
+#include <dirent.h>
 
 #define PORT "3490"  // the port users will be connecting to
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10     // how many pending connections queue will hold
 
-void sigchld_handler(int s)
-{
-    (void)s; // quiet unused variable warning
+void sigchld_handler(int s) {
+    (void) s; // quiet unused variable warning
 
     // waitpid() might overwrite errno, so we save and restore it:
     int saved_errno = errno;
 
-    while(waitpid(-1, NULL, WNOHANG) > 0);
+    while (waitpid(-1, NULL, WNOHANG) > 0);
 
     errno = saved_errno;
 }
@@ -46,7 +46,32 @@ json_object *HandleRequest(json_object *json) {
         json_object *error = json_object_new_int(errorNumber);
         json_object_object_add(response, "error", error);
     } else if (strcmp(command, "dir") == 0) {
+        int directoryError = 0;
+        char *currentDirectory = GetCurrentWorkingDirectory(&errorNumber);
+        if (currentDirectory == NULL) {
+            //-1 sucess status means getting current working directory failed
+            json_object *successStatus = json_object_new_int(-1);
+            json_object *directoryError = json_object_new_int(errorNumber);
+            json_object_object_add(response, "directoryError", directoryError);
+            json_object_object_add(response, "status", successStatus);
+        } else {
+            int size = 0;
+            int scandirError = 0;
+            char** fileList = GetListOfFiles( currentDirectory, &size, &scandirError);
+            json_object *array = json_object_new_array_ext(size);
+            for (int i = 0; i < size ; ++i) {
+                json_object_array_add(array, json_object_new_string(fileList[i]));
+                free(fileList[i]);
+            }
+            json_object_object_add(response, "currentDirectory", json_object_new_string(currentDirectory));
+            json_object_object_add(response, "array", array);
+            json_object_object_add(response, "scandirError", json_object_new_int(scandirError));
+            json_object_object_add(response, "directoryError", json_object_new_int(directoryError));
+            json_object_object_add(response, "arraySize", json_object_new_int(size));
+            free(currentDirectory);
+            free(fileList);
 
+        }
     } else if (strcmp(command, "put") == 0) {
         const char *filename = json_object_get_string(json_object_object_get(json, "filename"));
         json_object *json_filename = json_object_new_string(filename);
@@ -71,14 +96,13 @@ json_object *HandleRequest(json_object *json) {
     return response;
 }
 
-int main(void)
-{
+int main(void) {
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; // connector's address information
     socklen_t sin_size;
     struct sigaction sa;
-    int yes=1;
+    int yes = 1;
     char s[INET6_ADDRSTRLEN];
     int rv;
 
@@ -93,7 +117,7 @@ int main(void)
     }
 
     // loop through all the results and bind to the first we can
-    for(p = servinfo; p != NULL; p = p->ai_next) {
+    for (p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype,
                              p->ai_protocol)) == -1) {
             perror("server: socket");
@@ -117,7 +141,7 @@ int main(void)
 
     freeaddrinfo(servinfo); // all done with this structure
 
-    if (p == NULL)  {
+    if (p == NULL) {
         fprintf(stderr, "server: failed to bind\n");
         exit(EXIT_FAILURE);
     }
@@ -137,16 +161,16 @@ int main(void)
 
     printf("server: waiting for connections...\n");
 
-    while(1) {  // main accept() loop
+    while (1) {  // main accept() loop
         sin_size = sizeof their_addr;
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+        new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);
         if (new_fd == -1) {
             perror("accept");
             continue;
         }
 
         inet_ntop(their_addr.ss_family,
-                  get_in_addr((struct sockaddr *)&their_addr),
+                  get_in_addr((struct sockaddr *) &their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
 
@@ -157,8 +181,8 @@ int main(void)
             json_object *json = NULL;
             json_object *response = NULL;
             close(sockfd);
-            while(!close_program) {
-                if ((numbytes = receive_large(new_fd, &buf,0)) == -1) {
+            while (!close_program) {
+                if ((numbytes = receive_large(new_fd, &buf, 0)) == -1) {
                     perror("recv");
                     close(new_fd);
                     exit(1);

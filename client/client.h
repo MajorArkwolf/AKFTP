@@ -36,3 +36,5 @@ void PrintCWDError(bool client, int errorNumber);
  * @param errorNumber The error number set to errno by chdir
  */
 void PrintCHDIRError(bool client, int errorNumber);
+
+void PrintSCANDIRError(bool client, int errorNumber);

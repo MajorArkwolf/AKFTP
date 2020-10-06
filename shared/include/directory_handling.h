@@ -22,4 +22,4 @@ int ChangeCurrentWorkingDirectory(const char *newDirectory);
  * @param errorNumber The error number set into errno by
  * @return The number of filenames found and placed into the filenames array, -1 if an error occurred
  */
-int GetListOfFiles(char *directoryPath, char **filenames, int *errorNumber);
+char** GetListOfFiles(char *directoryPath, int *size, int *errorNumber);
