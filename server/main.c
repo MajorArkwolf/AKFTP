@@ -65,6 +65,7 @@ json_object *HandleRequest(json_object *json) {
             json_object_object_add(json, "array", array);
             json_object_object_add(json, "scandirError", json_object_new_int(scandirError));
             json_object_object_add(json, "arraySize", json_object_new_int(size));
+            free(currentDirectory);
         }
     } else if (strcmp(command, "put") == 0) {
 
