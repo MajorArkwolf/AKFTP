@@ -106,7 +106,7 @@ The solution devised is that there is a client and a server program however a la
 
 The underlying data structure for communication from client and server is JSON. This allows us to use key data pairs. If a key exists the data corresponding to the key must exist. This ensures that parsing data is simple, safe and effective.\\
 
-A short fall in using JSON is that the any string must only be terminated only once. This means that binary data is dangerous storing in a json string. To ensure we can avoid
+A short fall in using JSON is that any string must only be terminated once. This means that binary data is dangerous storing in a json string. To ensure avoiding this limitation we encode our data into base64. While this can give us a 40\% overhead on file size at the absolute worst, this ensures that the JSON payload doesn't break.
 
 \section{Protocol}
 \subsection{Commands and JSON}
