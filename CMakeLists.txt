@@ -45,6 +45,10 @@ add_subdirectory(server)
 add_subdirectory(shared)
 add_subdirectory(lib)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-shared json-c)
-target_link_libraries(${PROJECT_NAME}d PRIVATE ${PROJECT_NAME}-shared json-c)
-target_link_libraries(${PROJECT_NAME}-shared PRIVATE json-c)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-shared json-c ${SANITIZER_FLAGS})
+target_link_libraries(${PROJECT_NAME}d PRIVATE ${PROJECT_NAME}-shared json-c ${SANITIZER_FLAGS})
+target_link_libraries(${PROJECT_NAME}-shared PRIVATE json-c base64 ${SANITIZER_FLAGS})
+
+target_compile_options(${PROJECT_NAME} PRIVATE ${SANITIZER_FLAGS})
+target_compile_options(${PROJECT_NAME}d PRIVATE ${SANITIZER_FLAGS})
+target_compile_options(${PROJECT_NAME}-shared PRIVATE ${SANITIZER_FLAGS})
