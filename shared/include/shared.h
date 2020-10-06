@@ -99,7 +99,7 @@ void request_file(int socket, json_object *json, const char* file_location);
  * @param output_size the length of the string encoded
  * @return char * array, you must free this yourself.
  */
-char *decode_string(char *input, size_t input_size, size_t *output_size);
+char *decode_string(const char *input, size_t input_size, size_t *output_size);
 
 /**
  * Encode a string, allows strings with null terminators to be sent with out issues. Your job to free the return string
@@ -108,4 +108,4 @@ char *decode_string(char *input, size_t input_size, size_t *output_size);
  * @param output_size the length of the string decoded
  * @return char * array, you must free this yourself.
  */
-char *encode_string(char *input, size_t input_size, size_t *output_size);
+char *encode_string(const char *input, size_t input_size, size_t *output_size);

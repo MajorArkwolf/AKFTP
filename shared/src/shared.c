@@ -181,7 +181,7 @@ void request_file(const int socket, json_object *json, const char* file_location
     deserialize_file(response, response);
 }
 
-char *encode_string(char *input, size_t input_size, size_t *output_size) {
+char *encode_string(const char *input, size_t input_size, size_t *output_size) {
     char *output = NULL;
     struct base64_state state;
     *output_size = input_size * 1.40;
@@ -191,7 +191,7 @@ char *encode_string(char *input, size_t input_size, size_t *output_size) {
     return output;
 }
 
-char *decode_string(char *input, size_t input_size, size_t *output_size) {
+char *decode_string(const char *input, size_t input_size, size_t *output_size) {
     char *output = NULL;
     struct base64_state state;
     base64_stream_decode_init(&state, 0);
