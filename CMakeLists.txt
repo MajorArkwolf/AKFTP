@@ -51,3 +51,4 @@ target_link_libraries(${PROJECT_NAME}-shared PRIVATE json-c base64 ${SANITIZER_F
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${SANITIZER_FLAGS})
 target_compile_options(${PROJECT_NAME}d PRIVATE ${SANITIZER_FLAGS})
+target_compile_options(${PROJECT_NAME}-shared PRIVATE ${SANITIZER_FLAGS})
