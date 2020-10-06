@@ -7,11 +7,44 @@
 \usepackage{dirtree}
 \usepackage{xcolor}
 \usepackage{listings}
+\usepackage{tabulary}
 \newcommand\myicon[1]{{\color{#1}\rule{2ex}{2ex}}}
 \newcommand{\myfolder}[2]{\myicon{#1}\ {#2}}
 \usepackage{minted}
 \large
 \title{C++ Assignment 1}
+
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
 \begin{document}
 \begin{titlepage}
 	\begin{center}
@@ -47,8 +80,17 @@
 .3 \myfolder{green}{main.h}.
 .3 \myfolder{green}{main.c}.
 .2 \myfolder{blue}{shared}.
-.3 \myfolder{green}{shared.h}.
-.3 \myfolder{green}{shared.c}.
+.3 \myfolder{green}{include}.
+.4 \myfolder{orange}{shared.h}.
+.4 \myfolder{orange}{token.h}.
+.4 \myfolder{orange}{directory\_handling.h}.
+.3 \myfolder{green}{src}.
+.4 \myfolder{orange}{shared.c}.
+.4 \myfolder{orange}{token.c}.
+.4 \myfolder{orange}{directory\_handling.c}.
+.2 \myfolder{blue}{lib}.
+.3 \myfolder{green}{json-c}.
+.3 \myfolder{green}{base64}.
 .2 \myfolder{blue}{documentation}.
 .3 \myfolder{green}{Assignment2.tex}.
 }
@@ -58,28 +100,99 @@ Design and implement a simple network protocol that can be used to download file
 
 \section{Self Diagnosis and Evaluation}
 
+
 \section{Solution Breakdown}
+The solution devised is that there is a client and a server program however a large chunk of code is required in both. To ensure that the client and the server followed the protocols and any under the hood changes to one side didn't break the other. This is solved by having our own shared library that both programs use. By doing it this way refactoring chunks of code can be achieved with out breaking the functions calling them.\\
+
+The underlying data structure for communication from client and server is JSON. This allows us to use key data pairs. If a key exists the data corresponding to the key must exist. This ensures that parsing data is simple, safe and effective.\\
+
+A short fall in using JSON is that the any string must only be terminated only once. This means that binary data is dangerous storing in a json string. To ensure we can avoid
 
 \section{Protocol}
+\subsection{Commands and JSON}
+JSON is the backbone of the FTP client and server as it allows for serialisation and deserialisation of the data. Another benefit of implementing JSON is that if an error occurs in this process we can also assume that the data sent was not completed.
+\subsubsection{CD}
+Changes the current directory on the server.
+\begin{itemize}
+\item \textbf{command:} The command to be processed on the server.
+\item \textbf{dir:} The directory to be changed into relative to the current directory. 
+\item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.   
+\end{itemize}
+\subsubsection{DIR}
+Lists all the the directories and file relative the current working directory on the server.
+\begin{itemize}
+\item \textbf{command:} The command to be processed on the server.
+\item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
+\end{itemize}
+\subsubsection{PWD}
+Gives the absolute path to the current working directory of the server.
+\begin{itemize}
+\item \textbf{command:} The command to be processed on the server.
+\item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
+\end{itemize}
+\subsubsection{PUT}
+Takes a file from the client and places it on the server.
+\begin{itemize}
+\item \textbf{command:} The command to be processed on the server.
+\item \textbf{filename:} The file name to write the data too.
+\item \textbf{filedata:} Data of the file that was sent, this is encoded in base64 to ensure that null terminators do not break the json string.
+\item \textbf{ensize:} The encoded length of the string.
+\item \textbf{desize:} The decoded length of the string.
+\item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
+\end{itemize}
+\subsubsection{GET}
+Takes a file from the server and places it on the client.
+\begin{itemize}
+\item \textbf{command:} The command to be processed on the server.
+\item \textbf{filename:} The file name to write the data too.
+\item \textbf{filedata:} Data of the file that was sent, this is encoded in base64 to ensure that null terminators do not break the json string.
+\item \textbf{ensize:} The encoded length of the string.
+\item \textbf{desize:} The decoded length of the string.
+\item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
+\end{itemize}
+\subsection{Send and Receive}
 The protocols listed all use the existing TCP protocol implemented by the POSIX standards.
-\subsection{Send Protocol}
+\subsubsection{Send Protocol}
 The send protocol that is implemented following these rules.
 \begin{enumerate}
     \item Attempt to send the size of the data the recipient needs to receive.
     \item Await a response to confirm the recipient is ready. If no value or a false value is received, terminate send.
     \item Recipient sends confirmation that it is ready.
-    \item Send entire payload over send() socket command.
+    \item Send payload, deduct how much was sent from the total until the total is equal to zero.
     \item Return 0 if success otherwise return -1.
 \end{enumerate}
-
-\subsection{Receive Protocol}
+\subsubsection{Receive Protocol}
 The receive protocol that is implemented following these rules.
 \begin{enumerate}
     \item Wait for sender to confirm the size of the data.
     \item If size is received acknowledge by sending true, else send false and terminate receive process.
     \item Await sender to begin transfer of data.
+    \item Keep looping until the current size is equal to agreed upon size.
     \item If receive error, terminate; else update buffer parameter and return the size to the
 \end{enumerate}
+\section{Building}
+\subsection{Dependencies}
+\subsubsection*{Linux}
+The following dependencies are required for Linux.
+\begin{itemize}
+    \item Cmake 3.14
+    \item gcc or clang compiler
+\end{itemize}
+\subsubsection*{macOS}
+\begin{itemize}
+    \item Cmake 3.14
+    \item gcc or clang compiler
+\end{itemize}
+\subsection{Building}
+To generate the build scripts please run from the root directory....
+\begin{lstlisting}
+cmake -S . -B build -D CMAKE_BUILD_TYPE=Release    
+\end{lstlisting}
+Change into the build directory just created with cmake and run the following...
+\begin{lstlisting}
+make myftp myftpd    
+\end{lstlisting}
+You will now have 2 unix executables, myftp is the client program and myftpd is the server program.
 
 \section{Test Evidence}
 \subsection{Unit Testing}
@@ -87,7 +200,89 @@ The receive protocol that is implemented following these rules.
 \subsection{Integration Testing}
 
 \subsection{User Testing}
-
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & Logging in locaclly.\\
+    \hline User Input & ./myftp \\
+    \hline Result & Was able to connect to the local myftpd server when the server was running on my local machine.\\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & Logging in remotely.\\
+    \hline User Input & ./myftp arkwolf.com\\
+    \hline Result & Was able to connect to the remote server myftpd server when the server was running on my remote machine.\\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & PWD\\
+    \hline User Input & pwd\\
+    \hline Result & The server returned its current working directory and performed as expected. Output: /Users/arkwolf/Documents/Coding/Schoolwork/ICT374-Assignment2-AKFTP/cmake-build-debug/final/server\\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & LPWD\\
+    \hline User Input & lpwd\\
+    \hline Result & The client returned its current working directory and performed as expected. Output: /Users/arkwolf/Documents/Coding/Schoolwork/ICT374-Assignment2-AKFTP/cmake-build-debug/final/client\\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & CD\\
+    \hline User Input & cd ../\\
+    \hline Result & UPDATE ME\\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & LCD\\
+    \hline User Input & lcd ../\\
+    \hline Result & UPDATE ME\\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & dir\\
+    \hline User Input & dir\\
+    \hline Result & The server returned a list of its folders and files at its current working directory as expected. Output: \\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & ldir\\
+    \hline User Input & ldir\\
+    \hline Result & The client returned a list of its folders and files at its current working directory as expected. Output: \\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & Upload a text file\\
+    \hline User Input & put touch.txt\\
+    \hline Result & The text file from the clients working directory was uploaded to the servers local directory.\\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & Upload a binary file\\
+    \hline User Input & put myftpd\\
+    \hline Result & The binary file from the clients working directory was uploaded to the servers local directory. \\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & Download a text file\\
+    \hline User Input & get touch.txt\\
+    \hline Result & The text file from the clients working directory was downloaded to the clients local directory.\\
+    \hline
+    \end{tabulary}
+    \newline
+    \begin{tabulary}{1.0\textwidth}{|L|L|}
+    \hline Type of test & Download a binary file\\
+    \hline User Input & get myftpd\\
+    \hline Result & The binary file from the clients working directory was downloaded to the clients local directory. \\
+    \hline
+    \end{tabulary}
 
 \newpage
 \section{Source Code Listing}
@@ -102,5 +297,19 @@ The receive protocol that is implemented following these rules.
 \subsection{Shared}
     \subsubsection{shared.c}
 	\lstinputlisting[language=C]{../shared/src/shared.c}
+	\subsubsection{token.c}
+	\lstinputlisting[language=C]{../shared/src/token.c}
+	\subsubsection{directory\_handling.c}
+	\lstinputlisting[language=C]{../shared/src/directory_handling.c}
 
+\section{Third-Party Source Code}
+\subsection{json-c}
+JSON library used under MIT license.\\
+Thank you to all the contributors.\\
+https://github.com/json-c/json-c/\\
+\subsection{base64}
+Base 64 encorder used to encode our data streams.\\
+Licensed under BSD-Clause "Simplified" License.\\
+Thank you to all the contributors.\\
+https://github.com/aklomp/base64\\
 \end{document}
