@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <json_tokener.h>
+#include <json.h>
 
 #define MESSAGE_SIZE 1024
 
@@ -143,19 +144,32 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         pack_command_to_json(json, "dir");
         const char *data = json_object_to_json_string_length(json, 0, &size);
         send_large(socket, data, size, 0);
-        /*
         receive_large(socket, &response_data, 0);
         json_object *response = json_tokener_parse(response_data);
-        int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
+        int errorNumber = json_object_get_int((json_object_object_get(response, "directoryError")));
         if (errorNumber == 0) {
-            const char *dir = json_object_get_string(json_object_object_get(response, "dir"));
-            printf("%s\n", dir);
+            int scandirError = 0;
+            scandirError = json_object_get_int((json_object_object_get(response, "scandirError")));
+            if (scandirError == 0) {
+                const int arraySize = json_object_get_int(json_object_object_get(response, "arraySize"));
+                const struct array_list *array = json_object_get_array(json_object_object_get(response, "array"));
+                const char* serverDirectory = json_object_get_string(json_object_object_get(response, "currentDirectory"));
+                printf("(%s)\n", serverDirectory);
+                for (int i = 0; i < arraySize; ++i) {
+                    printf("%s\n", json_object_get_string((array->array)[i]));
+                }
+                array->free_fn((void *) array);
+            } else {
+                PrintSCANDIRError(false, scandirError);
+            }
+
             free(response);
+
             return 0;
         } else {
             PrintCWDError(false, errorNumber);
         }
-*/
+
 
     } else if (strcmp(tokens[0], "ldir") == 0) {
         int errorNumber = 0;
@@ -164,18 +178,23 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         if (clientWorkingDirectory != NULL) {
             char **filenames = NULL;
             filenames = GetListOfFiles(clientWorkingDirectory, &count, &errorNumber);
-            if (count > 0) {
-                if (filenames != NULL) {
-                    for (int i = 0; i < count; ++i) {
-                        if (filenames[i] != NULL) {
-                            printf("%s\n", filenames[i]);
-                            free(filenames[i]);
+            if (errorNumber == 0) {
+                if (count > 0) {
+                    if (filenames != NULL) {
+                        for (int i = 0; i < count; ++i) {
+                            if (filenames[i] != NULL) {
+                                printf("%s\n", filenames[i]);
+                                free(filenames[i]);
+                            }
                         }
+                        free(filenames);
                     }
-                    free(filenames);
                 }
+            } else
+            {
+                PrintSCANDIRError(true, errorNumber);
+                return EXIT_FAILURE;
             }
-
             free(clientWorkingDirectory);
             return EXIT_SUCCESS;
         } else {
@@ -197,7 +216,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             json_object *response = json_tokener_parse(response_data);
             int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
             if (errorNumber != 0) {
-                PrintCHDIRError(true, errorNumber);
+                PrintCHDIRError(false, errorNumber);
             } else {
                 return EXIT_SUCCESS;
             }
@@ -226,6 +245,13 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
 }
 
 void PrintCWDError(bool client, int errorNumber) {
+   if(client == true)
+   {
+       printf("(Client)");
+   } else
+   {
+       printf("(Server)");
+   }
     printf("Error: ");
     switch (errorNumber) {
         case EACCES: {
@@ -264,6 +290,13 @@ void PrintCWDError(bool client, int errorNumber) {
 }
 
 void PrintCHDIRError(bool client, int errorNumber) {
+    if(client == true)
+    {
+        printf("(Client)");
+    } else
+    {
+        printf("(Server)");
+    }
     printf("Error: ");
     switch (errorNumber) {
         case EACCES: {
@@ -288,6 +321,35 @@ void PrintCHDIRError(bool client, int errorNumber) {
             break;
         case ENOMEM: {
             printf("Insufficient kernel memory.\n");
+        }
+            break;
+        case ENOTDIR: {
+            printf("Path given was not a directory.\n");
+        }
+            break;
+        default: {
+            printf("%d Unknown error\n", errorNumber);
+        }
+            break;
+    }
+}
+
+void PrintSCANDIRError(bool client, int errorNumber) {
+    if(client == true)
+    {
+        printf("(Client)");
+    } else
+    {
+        printf("(Server)");
+    }
+    printf("Error: ");
+    switch (errorNumber) {
+        case ENOENT: {
+            printf("Unknown issue with current working directory.\n");
+        }
+            break;
+        case ENOMEM: {
+            printf("Insufficient memory to complete the operation.\n");
         }
             break;
         case ENOTDIR: {

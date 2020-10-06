@@ -46,7 +46,7 @@ json_object *HandleRequest(json_object *json) {
         json_object *error = json_object_new_int(errorNumber);
         json_object_object_add(response, "error", error);
     } else if (strcmp(command, "dir") == 0) {
-
+        int directoryError = 0;
         char *currentDirectory = GetCurrentWorkingDirectory(&errorNumber);
         if (currentDirectory == NULL) {
             //-1 sucess status means getting current working directory failed
@@ -61,11 +61,16 @@ json_object *HandleRequest(json_object *json) {
             json_object *array = json_object_new_array_ext(size);
             for (int i = 0; i < size ; ++i) {
                 json_object_array_add(array, json_object_new_string(fileList[i]));
+                free(fileList[i]);
             }
-            json_object_object_add(json, "array", array);
-            json_object_object_add(json, "scandirError", json_object_new_int(scandirError));
-            json_object_object_add(json, "arraySize", json_object_new_int(size));
+            json_object_object_add(response, "currentDirectory", json_object_new_string(currentDirectory));
+            json_object_object_add(response, "array", array);
+            json_object_object_add(response, "scandirError", json_object_new_int(scandirError));
+            json_object_object_add(response, "directoryError", json_object_new_int(directoryError));
+            json_object_object_add(response, "arraySize", json_object_new_int(size));
             free(currentDirectory);
+            free(fileList);
+
         }
     } else if (strcmp(command, "put") == 0) {
 
