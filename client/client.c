@@ -37,7 +37,7 @@ int RunClient(int socket) {
         fgets(message, MESSAGE_SIZE, stdin);
         strtok(message, "\n");
         //Tokenise our string
-        numTokens = Tokenise(message, tokens, "\n\t ");
+        numTokens = Tokenise(message, tokens, "\n\t\" ");
         json = json_object_new_object();
         if (numTokens > 0) {
             commandResult = HandleCommand(json, socket, tokens, numTokens);
@@ -108,6 +108,12 @@ int StartClient(int argc, char **argv) {
 int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     size_t size = 0;
     char *response_data = NULL;
+    char *path = NULL;
+
+    if (numTokens > 1) {
+        path = GetPathFromTokens(tokens, numTokens, 1);
+    }
+
     if (strcmp(tokens[0], "quit") == 0 || strcmp(tokens[0], "exit") == 0) {
         return -2;
     } else if (strcmp(tokens[0], "help") == 0) {
@@ -123,7 +129,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         int errorNumber = send_large(socket, data, size, 0);
         receive_large(socket, &response_data, 0);
         json_object *response = json_tokener_parse(response_data);
-        errorNumber = json_object_get_int((json_object_object_get(response,"error")));
+        errorNumber = json_object_get_int((json_object_object_get(response, "error")));
         if (errorNumber == 0) {
             const char *cwd = json_object_get_string(json_object_object_get(response, "cwd"));
             printf("%s\n", cwd);
@@ -159,7 +165,8 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             if (scandirError == 0) {
                 const int arraySize = json_object_get_int(json_object_object_get(response, "arraySize"));
                 const struct array_list *array = json_object_get_array(json_object_object_get(response, "array"));
-                const char* serverDirectory = json_object_get_string(json_object_object_get(response, "currentDirectory"));
+                const char *serverDirectory = json_object_get_string(
+                        json_object_object_get(response, "currentDirectory"));
                 printf("(%s)\n", serverDirectory);
                 for (int i = 0; i < arraySize; ++i) {
                     printf("%s\n", json_object_get_string((array->array)[i]));
@@ -197,8 +204,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
                         free(filenames);
                     }
                 }
-            } else
-            {
+            } else {
                 PrintSCANDIRError(true, errorNumber);
                 return EXIT_FAILURE;
             }
@@ -233,11 +239,11 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             }
         }
         return -1;
-
     } else if (strcmp(tokens[0], "lcd") == 0) {
+
         //TODO Support file paths with spaces
         if (tokens[1] != NULL) {
-            int errorNumber = ChangeCurrentWorkingDirectory(tokens[1]);
+            int errorNumber = ChangeCurrentWorkingDirectory(path);
             if (errorNumber != 0) {
                 PrintCHDIRError(true, errorNumber);
             } else {
@@ -246,10 +252,14 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         }
         return -1;
     } else if (strcmp(tokens[0], "get") == 0) {
+        if (numTokens <= 1) {
+            perror("Did not provide a file");
+            return 0;
+        }
         pack_command_to_json(json, "get");
-        request_file(socket, json,tokens[1]);
+        request_file(socket, json, tokens[1]);
     } else if (strcmp(tokens[0], "put") == 0) {
-        if (numTokens < 1) {
+        if (numTokens <= 1) {
             perror("Did not provide a file");
             return 0;
         }
@@ -286,18 +296,17 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     } else {
         printf("Unknown command. Type 'help' to get the list of commands.\n");
     }
+    free(path);
     free(response_data);
     return 0;
 }
 
 void PrintCWDError(bool client, int errorNumber) {
-   if(client == true)
-   {
-       printf("(Client)");
-   } else
-   {
-       printf("(Server)");
-   }
+    if (client == true) {
+        printf("(Client)");
+    } else {
+        printf("(Server)");
+    }
     printf("Error: ");
     switch (errorNumber) {
         case EACCES: {
@@ -336,11 +345,9 @@ void PrintCWDError(bool client, int errorNumber) {
 }
 
 void PrintCHDIRError(bool client, int errorNumber) {
-    if(client == true)
-    {
+    if (client == true) {
         printf("(Client)");
-    } else
-    {
+    } else {
         printf("(Server)");
     }
     printf("Error: ");
@@ -381,11 +388,9 @@ void PrintCHDIRError(bool client, int errorNumber) {
 }
 
 void PrintSCANDIRError(bool client, int errorNumber) {
-    if(client == true)
-    {
+    if (client == true) {
         printf("(Client)");
-    } else
-    {
+    } else {
         printf("(Server)");
     }
     printf("Error: ");

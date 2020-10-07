@@ -34,11 +34,10 @@ char** GetListOfFiles(char *directoryPath, int *size, int *errorNumber) {
         *errorNumber = errno;
     } else if (n == 0) {
         return NULL;
-        free(filenames);
     } else if (n > 0) {
         filenames = (char**) calloc(n, sizeof(char*));
         for (int i = 0; i < n; ++i) {
-            filenames[i] = (char*)calloc(1024, sizeof(char));
+            filenames[i] = (char*)calloc(FILENAME_MAX, sizeof(char));
             strcpy(filenames[i], nameList[i]->d_name);
             free(nameList[i]);
         }

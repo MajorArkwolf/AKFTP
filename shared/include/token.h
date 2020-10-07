@@ -11,3 +11,6 @@
  * @return The number of tokens put into the tokens array, or -1 if it has exceeded MAX_NUM_TOKENS
  */
 int Tokenise(char *inputLine, char *token[], char* separators);
+
+
+char * GetPathFromTokens( char** tokens, int numTokens, int startToken);
