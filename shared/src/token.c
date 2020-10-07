@@ -32,8 +32,6 @@ char* GetPathFromTokens(char **tokens, int numTokens, int startToken) {
             }
         }
     }
-    printf("%s\n", output);
-
     return output;
 }
 
