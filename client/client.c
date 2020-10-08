@@ -165,19 +165,18 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             if (scandirError == 0) {
                 const int arraySize = json_object_get_int(json_object_object_get(response, "arraySize"));
                 json_object *object_array = json_object_object_get(response, "array");
-                const struct array_list *array = json_object_get_array(object_array);
+//                const struct array_list *array = json_object_get_array(object_array);
                 const char *serverDirectory = json_object_get_string(
                         json_object_object_get(response, "currentDirectory"));
                 printf("(%s)\n", serverDirectory);
                 for (int i = 0; i < arraySize; ++i) {
-                    printf("%s\n", json_object_get_string((array->array)[i]));
+                    printf("%s\n", json_object_get_string(json_object_array_get_idx(object_array, i)));
                 }
                 json_object_array_del_idx(object_array,0,  arraySize);
-                json_object_put(object_array);
             } else {
                 PrintSCANDIRError(false, scandirError);
             }
-            free(response);
+            json_object_put(response);
         } else {
             PrintCWDError(false, errorNumber);
         }
@@ -230,6 +229,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             if (errorNumber != 0) {
                 PrintCHDIRError(false, errorNumber);
             }
+            while(json_object_put(response) != 1);
         }
         errorCode = errorNumber;
     } else if (strcmp(tokens[0], "lcd") == 0) {
@@ -247,6 +247,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             return 0;
         }
         pack_command_to_json(json, "get");
+        printf("\"%s\"", path);
         request_file(socket, json, path);
     } else if (strcmp(tokens[0], "put") == 0) {
         if (numTokens <= 1) {
@@ -287,6 +288,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         printf("Unknown command. Type 'help' to get the list of commands.\n");
     }
     free(path);
+    free(response_data);
     return errorCode;
 }
 
