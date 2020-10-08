@@ -53,6 +53,7 @@ int RunClient(int socket) {
 }
 
 int StartClient(int argc, char **argv) {
+    int errorCode = 0;
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
     int rv;
@@ -71,6 +72,7 @@ int StartClient(int argc, char **argv) {
     //Gets the info of a given address.
     if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        freeaddrinfo(servinfo); // all done with this structure
         return 1;
     }
 
@@ -94,6 +96,7 @@ int StartClient(int argc, char **argv) {
     // Check if the connection connected
     if (p == NULL) {
         fprintf(stderr, "client: failed to connect\n");
+        freeaddrinfo(servinfo); // all done with this structure
         return -1;
     }
 
@@ -103,7 +106,7 @@ int StartClient(int argc, char **argv) {
 
     freeaddrinfo(servinfo); // all done with this structure
     RunClient(sockfd);
-    return 0;
+    return 0;    freeaddrinfo(servinfo); // all done with this structure
 }
 
 int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
