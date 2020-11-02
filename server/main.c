@@ -35,7 +35,7 @@ json_object *HandleRequest(json_object *json) {
     json_object *response = json_object_new_object();
     const char *command = unpack_command_from_json(json);
     int32_t errorNumber = 0;
-    if(strcmp(command, "pwd") == 0) {
+    if (strcmp(command, "pwd") == 0) {
         json_object *cwd = json_object_new_string(GetCurrentWorkingDirectory(&errorNumber));
         json_object *error = json_object_new_int(errorNumber);
         json_object_object_add(response, "error", error);
@@ -96,6 +96,28 @@ json_object *HandleRequest(json_object *json) {
     return response;
 }
 
+void StartConnection(int socket) {
+    char *buf = NULL;
+    int numbytes = 0;
+    json_object *json = NULL;
+    json_object *response = NULL;
+    while (1) {
+        if ((numbytes = receive_large(socket, &buf, 0)) == -1) {
+            perror("recv");
+            close(socket);
+            exit(1);
+        }
+        json = json_tokener_parse(buf);
+        if (json != NULL) {
+            response = HandleRequest(json);
+            size_t size = 0;
+            const char *data = json_object_to_json_string_length(response, 0, &size);
+            send_large(socket, data, size, 0);
+            free(json);
+            free(response);
+        }
+    }
+}
 int main(void) {
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
@@ -165,7 +187,7 @@ int main(void) {
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);
         if (new_fd == -1) {
-            perror("accept");
+            perror("failed to connect");
             continue;
         }
 
@@ -175,28 +197,8 @@ int main(void) {
         printf("server: got connection from %s\n", s);
 
         if (!fork()) { // this is the child process
-            bool close_program = false;
-            char *buf = NULL;
-            int numbytes = 0;
-            json_object *json = NULL;
-            json_object *response = NULL;
             close(sockfd);
-            while (!close_program) {
-                if ((numbytes = receive_large(new_fd, &buf, 0)) == -1) {
-                    perror("recv");
-                    close(new_fd);
-                    exit(1);
-                }
-                json = json_tokener_parse(buf);
-                if (json != NULL) {
-                    response = HandleRequest(json);
-                    size_t size = 0;
-                    const char *data = json_object_to_json_string_length(response, 0, &size);
-                    send_large(new_fd, data, size, 0);
-                    free(json);
-                    free(response);
-                }
-            }
+            StartConnection(new_fd);
         }
         close(new_fd);  // parent doesn't need this
     }

@@ -199,3 +199,14 @@ char *decode_string(const char *input, size_t input_size, size_t *output_size) {
     base64_decode(input, input_size, output, output_size, 0);
     return output;
 }
+
+void log_to_file(const char *input) {
+    FILE *fptr = fopen("log.txt","w");
+    fprintf(fptr,"%s", input);
+    fclose(fptr);
+}
+
+void log_command_to_file(const char *command, int ip) {
+    char output[1000] = {"\0"};
+    sprintf(output, "");
+}

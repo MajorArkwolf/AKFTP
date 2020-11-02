@@ -109,3 +109,10 @@ char *decode_string(const char *input, size_t input_size, size_t *output_size);
  * @return char * array, you must free this yourself.
  */
 char *encode_string(const char *input, size_t input_size, size_t *output_size);
+
+/**
+ * Write a string to a given file
+ * @param input string to write
+ * @return
+ */
+void log_to_file(const char *input);
