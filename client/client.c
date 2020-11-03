@@ -45,13 +45,15 @@ int RunClient(int socket) {
                 shouldContinue = false;
             }
         }
-        free(json);
+        while (json_object_put(json) != 1);
+
     }
     //Close stuff
     exit(EXIT_SUCCESS);
 }
 
 int StartClient(int argc, char **argv) {
+    int errorCode = 0;
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
     int rv;
@@ -70,6 +72,7 @@ int StartClient(int argc, char **argv) {
     //Gets the info of a given address.
     if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        freeaddrinfo(servinfo); // all done with this structure
         return 1;
     }
 
@@ -93,6 +96,7 @@ int StartClient(int argc, char **argv) {
     // Check if the connection connected
     if (p == NULL) {
         fprintf(stderr, "client: failed to connect\n");
+        freeaddrinfo(servinfo); // all done with this structure
         return -1;
     }
 
@@ -102,10 +106,11 @@ int StartClient(int argc, char **argv) {
 
     freeaddrinfo(servinfo); // all done with this structure
     RunClient(sockfd);
-    return 0;
+    return 0;    freeaddrinfo(servinfo); // all done with this structure
 }
 
 int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
+    int errorCode = 0;
     size_t size = 0;
     char *response_data = NULL;
     char *path = NULL;
@@ -115,16 +120,16 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     }
 
     if (strcmp(tokens[0], "quit") == 0 || strcmp(tokens[0], "exit") == 0) {
-        return -2;
+        errorCode = -2;
     } else if (strcmp(tokens[0], "help") == 0) {
         printf("Not implemented yet, good luck. Type quit or exit to exit program.\n");
-        return 0;
+        errorCode = 0;
     } else if (strcmp(tokens[0], "pwd") == 0) {
         pack_command_to_json(json, "pwd");
         const char *data = json_object_to_json_string_length(json, 0, &size);
         if (data == NULL) {
             perror("Serialising data failed in PWD function.");
-            return -1;
+            errorCode = 1;
         }
         int errorNumber = send_large(socket, data, size, 0);
         receive_large(socket, &response_data, 0);
@@ -133,12 +138,11 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         if (errorNumber == 0) {
             const char *cwd = json_object_get_string(json_object_object_get(response, "cwd"));
             printf("%s\n", cwd);
-            free(response);
-            return 0;
         } else {
             PrintCWDError(false, errorNumber);
-            free(response);
         }
+        while (json_object_put(response) != 1);
+        errorCode = errorNumber;
 
     } else if (strcmp(tokens[0], "lpwd") == 0) {
         int errorNumber = 0;
@@ -146,11 +150,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         if (clientWorkingDirectory != NULL) {
             printf("%s\n", clientWorkingDirectory);
             free(clientWorkingDirectory);
-            return 0;
         } else {
             PrintCWDError(true, errorNumber);
-            return -1;
         }
+        errorCode = errorNumber;
 
     } else if (strcmp(tokens[0], "dir") == 0) {
         pack_command_to_json(json, "dir");
@@ -164,24 +167,23 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             scandirError = json_object_get_int((json_object_object_get(response, "scandirError")));
             if (scandirError == 0) {
                 const int arraySize = json_object_get_int(json_object_object_get(response, "arraySize"));
-                const struct array_list *array = json_object_get_array(json_object_object_get(response, "array"));
+                json_object *object_array = json_object_object_get(response, "array");
+//                const struct array_list *array = json_object_get_array(object_array);
                 const char *serverDirectory = json_object_get_string(
                         json_object_object_get(response, "currentDirectory"));
                 printf("(%s)\n", serverDirectory);
                 for (int i = 0; i < arraySize; ++i) {
-                    printf("%s\n", json_object_get_string((array->array)[i]));
+                    printf("%s\n", json_object_get_string(json_object_array_get_idx(object_array, i)));
                 }
-                array->free_fn((void *) array);
+                json_object_array_del_idx(object_array,0,  arraySize);
             } else {
                 PrintSCANDIRError(false, scandirError);
             }
-
-            free(response);
-
-            return 0;
+            json_object_put(response);
         } else {
             PrintCWDError(false, errorNumber);
         }
+        errorCode = errorNumber;
 
 
     } else if (strcmp(tokens[0], "ldir") == 0) {
@@ -206,81 +208,73 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
                 }
             } else {
                 PrintSCANDIRError(true, errorNumber);
-                return EXIT_FAILURE;
             }
             free(clientWorkingDirectory);
-            return EXIT_SUCCESS;
         } else {
             PrintCWDError(true, errorNumber);
-            return EXIT_FAILURE;
         }
-
+        errorCode = errorNumber;
     } else if (strcmp(tokens[0], "cd") == 0) {
-        //TODO Support file paths with spaces
+        int errorNumber = 0;
         if (tokens[1] != NULL) {
             pack_command_to_json(json, "cd");
-            json_object *dir = json_object_new_string(tokens[1]);
+            json_object *dir = json_object_new_string(path);
             json_object_object_add(json, "dir", dir);
             const char *data = json_object_to_json_string_length(json, 0, &size);
             if (data == NULL) {
                 perror("Serialising data failed in cd function.");
-                return -1;
+                return EXIT_FAILURE;
             }
             send_large(socket, data, size, 0);
             receive_large(socket, &response_data, 0);
-            //send tokens[1] to server with command to change directory
-            //server will return error number, 0 if no error
             json_object *response = json_tokener_parse(response_data);
-            int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
+            errorNumber = json_object_get_int((json_object_object_get(response, "error")));
             if (errorNumber != 0) {
                 PrintCHDIRError(false, errorNumber);
-            } else {
-                return 1;
             }
+            while(json_object_put(response) != 1);
         }
-        return -1;
+        errorCode = errorNumber;
     } else if (strcmp(tokens[0], "lcd") == 0) {
-
-        //TODO Support file paths with spaces
+        int errorNumber = 0;
         if (tokens[1] != NULL) {
-            int errorNumber = ChangeCurrentWorkingDirectory(path);
+            errorNumber = ChangeCurrentWorkingDirectory(path);
             if (errorNumber != 0) {
                 PrintCHDIRError(true, errorNumber);
-            } else {
-                return 0;
             }
         }
-        return -1;
+        errorCode = errorNumber;
     } else if (strcmp(tokens[0], "get") == 0) {
         if (numTokens <= 1) {
             perror("Did not provide a file");
             return 0;
         }
         pack_command_to_json(json, "get");
-        request_file(socket, json, tokens[1]);
+        printf("\"%s\"", path);
+        request_file(socket, json, path);
     } else if (strcmp(tokens[0], "put") == 0) {
         if (numTokens <= 1) {
             perror("Did not provide a file");
-            return 0;
+            errorCode = errno;
         }
         if (!check_if_file_exists(tokens[1])) {
             perror("File not found");
-            return 0;
+            errorCode = errno;
         }
         pack_command_to_json(json, "put");
-        json_object *filename = json_object_new_string(tokens[1]);
+        json_object *filename = json_object_new_string(path);
         json_object_object_add(json, "filename", filename);
         int error = serialize_file(json);
         if (error < 0) {
             perror("Failed to serialize");
-            return -1;
+            errorCode = errno;
         }
         const char *data = json_object_to_json_string_length(json, 0, &size);
         if (send_large(socket, data, size, 0) < 0) {
-            return -1;
+            errorCode = errno;
         }
         if (receive_large(socket, &response_data, 0) < 0) {
-            return -1;
+            errorCode = errno;
         }
         json_object *response = json_tokener_parse(response_data);
         if (response != NULL) {
@@ -290,7 +284,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         if (errorNumber == -1) {
             perror("Failed to upload");
             free(response);
-            return -1;
+            errorCode = errno;
         }
         free(response);
     } else {
@@ -298,7 +292,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     }
     free(path);
     free(response_data);
-    return 0;
+    return errorCode;
 }
 
 void PrintCWDError(bool client, int errorNumber) {
