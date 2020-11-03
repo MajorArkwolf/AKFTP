@@ -250,8 +250,8 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             return 0;
         }
         pack_command_to_json(json, "get");
-        printf("\"%s\"", path);
         request_file(socket, json, path);
+        printf("Completed download of \"%s\" file\n", path);
     } else if (strcmp(tokens[0], "put") == 0) {
         if (numTokens <= 1) {
             perror("Did not provide a file");

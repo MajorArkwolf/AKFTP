@@ -115,4 +115,4 @@ char *encode_string(const char *input, size_t input_size, size_t *output_size);
  * @param from_client the json sent from the client.
  * @param to_client the response from the server to the client.
  */
-void log_to_file(json_object *from_client, json_object *to_client, int socket);
+void log_to_file(const char *wd, json_object *from_client, json_object *to_client, int socket);

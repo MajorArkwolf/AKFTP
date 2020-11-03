@@ -101,6 +101,8 @@ void StartConnection(int socket) {
     int numbytes = 0;
     json_object *json = NULL;
     json_object *response = NULL;
+    int error = 0;
+    const char * cwd = GetCurrentWorkingDirectory(&error);
     while (1) {
         if ((numbytes = receive_large(socket, &buf, 0)) == -1) {
             perror("recv");
@@ -114,12 +116,12 @@ void StartConnection(int socket) {
             const char *data = json_object_to_json_string_length(response, 0, &size);
             send_large(socket, data, size, 0);
         }
-        log_to_file(json, response, socket);
+        log_to_file(cwd, json, response, socket);
         if (json != NULL) {
-            json_object_put(json);
+            //while (json_object_put(response) > 1) {}
         }
         if (response != NULL) {
-            json_object_put(response);
+            //while (json_object_put(response) > 1) {}
         }
     }
 }
@@ -202,7 +204,7 @@ int main(void) {
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
 
-        if (!fork()) { // this is the child process
+        if (/**!fork()**/ 1) { // this is the child process
             close(sockfd);
             StartConnection(new_fd);
         }
