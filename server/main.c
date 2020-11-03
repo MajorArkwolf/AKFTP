@@ -116,10 +116,10 @@ void StartConnection(int socket) {
         }
         log_to_file(json, response, socket);
         if (json != NULL) {
-            free(json);
+            json_object_put(json);
         }
         if (response != NULL) {
-            free(response);
+            json_object_put(response);
         }
     }
 }
