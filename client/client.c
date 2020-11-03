@@ -77,6 +77,7 @@ int StartClient(int argc, char **argv) {
     }
 
     // loop through all the results and connect to the first we can
+    bool failed_on_all = true;
     for (p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype,
                              p->ai_protocol)) == -1) {
@@ -85,12 +86,19 @@ int StartClient(int argc, char **argv) {
         }
 
         if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            perror("client: connect");
+            //perror("client: connect");
             close(sockfd);
             continue;
+        } else {
+            failed_on_all = false;
         }
 
         break;
+    }
+
+    if (failed_on_all) {
+        perror("Failed to connect to the server.\n");
+        return -1;
     }
 
     // Check if the connection connected

@@ -204,7 +204,7 @@ int main(void) {
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
 
-        if (/**!fork()**/ 1) { // this is the child process
+        if (!fork()) { // this is the child process
             close(sockfd);
             StartConnection(new_fd);
         }
