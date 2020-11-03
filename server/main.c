@@ -1,3 +1,4 @@
+#include "shared.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -5,7 +6,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "shared.h"
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
@@ -46,7 +46,7 @@ json_object *HandleRequest(json_object *json) {
         json_object *error = json_object_new_int(errorNumber);
         json_object_object_add(response, "error", error);
     } else if (strcmp(command, "dir") == 0) {
-        int directoryError = 0;
+        int directoryErrorNum = 0;
         char *currentDirectory = GetCurrentWorkingDirectory(&errorNumber);
         if (currentDirectory == NULL) {
             //-1 sucess status means getting current working directory failed
@@ -57,16 +57,16 @@ json_object *HandleRequest(json_object *json) {
         } else {
             int size = 0;
             int scandirError = 0;
-            char** fileList = GetListOfFiles( currentDirectory, &size, &scandirError);
+            char **fileList = GetListOfFiles(currentDirectory, &size, &scandirError);
             json_object *array = json_object_new_array_ext(size);
-            for (int i = 0; i < size ; ++i) {
+            for (int i = 0; i < size; ++i) {
                 json_object_array_add(array, json_object_new_string(fileList[i]));
                 free(fileList[i]);
             }
             json_object_object_add(response, "currentDirectory", json_object_new_string(currentDirectory));
             json_object_object_add(response, "array", array);
             json_object_object_add(response, "scandirError", json_object_new_int(scandirError));
-            json_object_object_add(response, "directoryError", json_object_new_int(directoryError));
+            json_object_object_add(response, "directoryError", json_object_new_int(directoryErrorNum));
             json_object_object_add(response, "arraySize", json_object_new_int(size));
             free(currentDirectory);
             free(fileList);
@@ -113,11 +113,17 @@ void StartConnection(int socket) {
             size_t size = 0;
             const char *data = json_object_to_json_string_length(response, 0, &size);
             send_large(socket, data, size, 0);
+        }
+        log_to_file(json, response, socket);
+        if (json != NULL) {
             free(json);
+        }
+        if (response != NULL) {
             free(response);
         }
     }
 }
+
 int main(void) {
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;

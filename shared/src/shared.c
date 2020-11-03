@@ -1,11 +1,16 @@
 #include "../include/shared.h"
-#include <netinet/in.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <json_tokener.h>
 #include <libbase64.h>
+#include <time.h>
+#include <assert.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 
 // get sockaddr, IPv4 or IPv6:
@@ -200,13 +205,45 @@ char *decode_string(const char *input, size_t input_size, size_t *output_size) {
     return output;
 }
 
-void log_to_file(const char *input) {
-    FILE *fptr = fopen("log.txt","w");
-    fprintf(fptr,"%s", input);
-    fclose(fptr);
-}
+void log_to_file(json_object *from_client, json_object *to_client, int socket) {
+    FILE *fptr = fopen("log.txt","a");
+    if (fptr == NULL) {
+        perror("File failed to open.");
+        return;
+    }
+    char output[10000] = {""};
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    assert(strftime(output, sizeof(output), "%c", tm) > 0);
+    strcat(output, ": ");
+    struct sockaddr_in peer;
+    socklen_t addressLength = sizeof(peer);
+    if (getpeername(socket, (struct sockaddr*)&peer, &addressLength) == -1) {
+        perror("getpeername() failed");
+        return;
+    }
+    strcat(output, inet_ntoa(peer.sin_addr));
+    strcat(output, ": ");
+    if (from_client == NULL) {
+        //ERROR GOES HERE
+        strcat(output, "ERROR, Clients message did not parse.");
+    } else {
+        const char *command = unpack_command_from_json(from_client);
+        strcat(output, command);
+        if (strcmp(command, "pwd") == 0) {
 
-void log_command_to_file(const char *command, int ip) {
-    char output[1000] = {"\0"};
-    sprintf(output, "");
+        } else if (strcmp(command, "cd") == 0) {
+
+        } else if (strcmp(command, "dir") == 0) {
+
+        } else if (strcmp(command, "put") == 0) {
+
+        } else if (strcmp(command, "get") == 0) {
+
+        }
+    }
+
+
+    fprintf(fptr,"%s\n", output);
+    fclose(fptr);
 }
