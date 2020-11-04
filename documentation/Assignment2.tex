@@ -97,25 +97,25 @@
 }
 
 \section{Information}
-Design and implement a simple network protocol that can be used to download files from a remote site and to upload files to a remote site, and a client and a server programs that communicate using that protocol. The protocol should use TCP as its transport layer protocol. The server must be able to serve multiple client requests simultaneously. For simplicity, do not consider any authentication process in this project, hence the server will provide its service to any client with the right site address and port number.
+Design and implement a simple network protocol that can be used to download files from a remote site and to upload files to a remote site, and a client and a server programs that communicate using that protocol. The protocol is using TCP as its transport layer protocol. The server can have multiple clients request simultaneously. For simplicity we did not consider any authentication process in this project, hence the server will provide its service to any client with the right site address and port number.
 
 \section{Self Diagnosis and Evaluation}
 \begin{itemize}
-\item The way we have implemented our code makes it far more portable then and is also cross platform from macOS to Linux it is however more complicated and with out error checking, possibly more error prone.
-\item Using a shared library between our client and our server gives us the ability to keep shared code consistent between them with little effort.
-\item Using a third party library for serialisation and deserialisation means that our backbone is robust and gives us confidence to focus on other areas.
+\item The way we have implemented our code makes it portable while also being cross platform on both macOS to Linux. This does make it more complicated and with out extensive checking possibly more error prone.
+\item Using a shared library between our client and our server gives us the ability to keep shared code consistent between both the server and client. This avoids any issues of changes to one causing unpredictable behaviour in the other.
+\item Using a third party library for serialisation and deserialisation means that our backbone is robust and simpler to parse. This removes any headaches that come with parsing strings in C.
 \end{itemize}
 
 \section{Solution Breakdown}
-The solution devised is that there is a client and a server program however a large chunk of code is required in both. To ensure that the client and the server followed the protocols and any under the hood changes to one side didn't break the other. This is solved by having our own shared library that both programs use. By doing it this way refactoring chunks of code can be achieved with out breaking the functions calling them.\\
+The solution devised is that there is a client and a server program. However, a large chunk of code is required in both. We needed to ensure that the client and the server followed the protocols and any under the hood changes to one side didn't break the other. This was solved by having our own shared library that both programs pull down from. By doing this way, refactoring chunks of code can be achieved with out breaking the functions calling them.\\
 
-The underlying data structure for communication from client and server is JSON. This allows us to use key data pairs. If a key exists the data corresponding to the key must exist. This ensures that parsing data is simple, safe and effective.\\
+The underlying data structure for communication from client and server is JSON. This allows us to use key data pairs. If a key exists the data corresponding to the key must exist. This ensures that parsing data is simple, safe and effective. The reason this is safer is because we are able to stop a function if a key is missing and instead report and error.\\
 
-A short fall in using JSON is that any string must only be terminated once. This means that binary data is dangerous being stored in a json string. To ensure avoiding this limitation, we encode our data into base64. While this can give us a 40\% overhead on file size at the absolute worst, this ensures that the JSON payload doesn't break.
+A short fall in using JSON is that any string must only be null terminated once. This means that binary data is dangerous being stored in a json string. To ensure avoiding this limitation, we encode our data into base64. While this can give us a 40\% overhead on file size at the absolute worst, this ensures that the JSON payload wont break during transmission. We believe that the trade off is worth the reliability that JSON offers.
 
 \section{Protocol}
 \subsection{Commands and JSON}
-JSON is the backbone of the FTP client and server as it allows for serialisation and deserialisation of the data. Another benefit of implementing JSON is that if an error occurs in this process we can also assume that the data sent was not completed.
+As mentioned prior, JSON is the backbone of the FTP client and server as it allows for serialisation and deserialisation of the data between the two. Another benefit of implementing JSON is that if an error occurs in this process we can also assume that the data sent was not completed.
 \subsubsection{CD}
 Changes the current directory on the server.
 \begin{itemize}
@@ -156,24 +156,24 @@ Takes a file from the server and places it on the client.
 \item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
 \end{itemize}
 \subsection{Send and Receive}
-The protocols listed all use the existing TCP protocol implemented by the POSIX standards.
+The functions listed above all use the existing TCP protocol implemented by the POSIX standards.
 \subsubsection{Send Protocol}
-The send protocol that is implemented following these rules.
+The send protocol that is implemented follows these rules.
 \begin{enumerate}
     \item Attempt to send the size of the data the recipient needs to receive.
     \item Await a response to confirm the recipient is ready. If no value or a false value is received, terminate send.
     \item Recipient sends confirmation that it is ready.
-    \item Send payload, deduct how much was sent from the total until the total is equal to zero.
+    \item Send payload, deduct how many bytes were sent from the total until the total is equal to zero.
     \item Return 0 if success otherwise return -1.
 \end{enumerate}
 \subsubsection{Receive Protocol}
-The receive protocol that is implemented following these rules.
+The receive protocol that is implemented follows these rules.
 \begin{enumerate}
     \item Wait for sender to confirm the size of the data.
     \item If size is received acknowledge by sending true, else send false and terminate receive process.
     \item Await sender to begin transfer of data.
     \item Keep looping until the current size is equal to agreed upon size.
-    \item If receive error, terminate; else update buffer parameter and return the size to the
+    \item If receive error, terminate; else update buffer parameter and return the size to the buffer.
 \end{enumerate}
 \section{Building}
 \subsection{Dependencies}
@@ -196,101 +196,92 @@ To generate the build scripts please run from the root directory....
 \begin{lstlisting}
 cmake -S . -B build -D CMAKE_BUILD_TYPE=Release    
 \end{lstlisting}
-Change into the build directory just created with cmake and run the following...
+Change into the build directory
+\begin{lstlisting}
+cd build/    
+\end{lstlisting}
+Now call make to begin the compilation process like so.
 \begin{lstlisting}
 make myftp myftpd    
 \end{lstlisting}
-You will now have 2 unix executables, myftp is the client program and myftpd is the server program.
+The compiler should have produced 2 unix executables, myftp is the client program and myftpd is the server program.
+\section{Executing}
+\subsection{Server}
+To run the server just execute myftpd, no additional information is required.
+\begin{lstlisting}
+    ./myftpd
+\end{lstlisting}
+\subsection{Client}
+Running the client, an IP address will need to be parsed in should you wish to connect to a server that is not local. Failing to provide an IP address on the first argument will result in the IP being bound to 127.0.0.1. 
+
+Example of setting an ip...
+\begin{lstlisting}
+    ./myftp 1.1.1.1
+\end{lstlisting}
+or
+\begin{lstlisting}
+    ./myftp arkwolf.com
+\end{lstlisting}
+
 
 \section{Test Evidence}
-\subsection{Unit Testing}
-
-\subsection{Integration Testing}
-
 \subsection{User Testing}
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & Logging in locaclly.\\
-    \hline User Input & ./myftp \\
-    \hline Result & Was able to connect to the local myftpd server when the server was running on my local machine.\\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & Logging in remotely.\\
-    \hline User Input & ./myftp arkwolf.com\\
-    \hline Result & Was able to connect to the remote server myftpd server when the server was running on my remote machine.\\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & PWD\\
-    \hline User Input & pwd\\
-    \hline Result & The server returned its current working directory and performed as expected. Output: /Users/arkwolf/Documents/Coding/Schoolwork/ICT374-Assignment2-AKFTP/cmake-build-debug/final/server\\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & LPWD\\
-    \hline User Input & lpwd\\
-    \hline Result & The client returned its current working directory and performed as expected. Output: /Users/arkwolf/Documents/Coding/Schoolwork/ICT374-Assignment2-AKFTP/cmake-build-debug/final/client\\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & CD\\
-    \hline User Input & cd ../\\
-    \hline Result & UPDATE ME\\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & LCD\\
-    \hline User Input & lcd ../\\
-    \hline Result & UPDATE ME\\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & dir\\
-    \hline User Input & dir\\
-    \hline Result & The server returned a list of its folders and files at its current working directory as expected. Output: \\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & ldir\\
-    \hline User Input & ldir\\
-    \hline Result & The client returned a list of its folders and files at its current working directory as expected. Output: \\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & Upload a text file\\
-    \hline User Input & put touch.txt\\
-    \hline Result & The text file from the clients working directory was uploaded to the servers local directory.\\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & Upload a binary file\\
-    \hline User Input & put myftpd\\
-    \hline Result & The binary file from the clients working directory was uploaded to the servers local directory. \\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & Download a text file\\
-    \hline User Input & get touch.txt\\
-    \hline Result & The text file from the clients working directory was downloaded to the clients local directory.\\
-    \hline
-    \end{tabulary}
-    \newline
-    \begin{tabulary}{1.0\textwidth}{|L|L|}
-    \hline Type of test & Download a binary file\\
-    \hline User Input & get myftpd\\
-    \hline Result & The binary file from the clients working directory was downloaded to the clients local directory. \\
-    \hline
-    \end{tabulary}
+%
+%\textbf{Task:} \\
+%\textbf{Action:} \\
+%\textbf{Result:} \\
+
+\textbf{Task:} Execute Client\\
+\textbf{Action:} User input into shell "./myftp"\\
+\textbf{Result:} Was able to connect to the local myftpd server when the server was running on my local machine.\\
+
+\textbf{Task:} Execute Client with DNS\\
+\textbf{Action:} User Input into shell "./myftp arkwolf.com"\\
+\textbf{Result:} Was able to connect to the remote server myftpd server when the server was running on my remote machine.\\
+
+\textbf{Task:} Test the pwd command to the server.\\
+\textbf{Action:} pwd\\
+\textbf{Result:} The server returned its current working directory and performed as expected. Output: /Users/arkwolf/Documents/Coding Schoolwork/ICT374-Assignment2-AKFTP/cmake-build-debug/final/server\\
+
+\textbf{Task:} Test the lpwd command to the client.\\
+\textbf{Action:} lpwd\\
+\textbf{Result:} The client returned its current working directory and performed as expected. Output: /Users/arkwolf/cuments/Coding/Schoolwork/ICT374-Assignment2-AKFTP/cmake-build-debug/final/client\\
+
+\textbf{Task:} Change the directory using the CD command.\\
+\textbf{Action:} cd ../\\
+\textbf{Result:} \\
+
+\textbf{Task:} Change the directory using the local cd command\\
+\textbf{Action:} lcd ../\\
+\textbf{Result:} \\
+
+\textbf{Task:} Get a list of the directories inside the servers current working directory.\\
+\textbf{Action:} dir\\
+\textbf{Result:} \\
+
+\textbf{Task:} Get a list of the directories inside the servers current working directory.\\
+\textbf{Action:} dir\\
+\textbf{Result:} he server returned a list of its folders and files at its current working directory as expected.\\
+
+\textbf{Task:} Get a list of the directories inside the clients current working directory.\\\
+\textbf{Action:} ldir\\
+\textbf{Result:} The client returned a list of its folders and files at its current working directory as expected.\\
+
+\textbf{Task:} Upload a text file.\\
+\textbf{Action:} put touch.txt\\
+\textbf{Result:} The text file from the clients working directory was uploaded to the servers local directory.\\
+
+\textbf{Task:} Upload a binary file\\
+\textbf{Action:} put myftpd\\
+\textbf{Result:} The binary file from the clients working directory was uploaded to the servers local directory.\\
+
+\textbf{Task:} Download a text file\\
+\textbf{Action:} get touch.txt\\
+\textbf{Result:} The text file from the clients working directory was downloaded to the clients local directory.\\
+
+\textbf{Task:} Download a binary file\\
+\textbf{Action:} get myftpd\\
+\textbf{Result:} The binary file from the clients working directory was downloaded to the clients local directory.\\
 
 \newpage
 \section{Source Code Listing}
