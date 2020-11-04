@@ -297,7 +297,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             free(response);
             errorCode = errno;
         }
-        free(response);
+        json_object_put(response);
     } else {
         printf("Unknown command. Type 'help' to get the list of commands.\n");
     }

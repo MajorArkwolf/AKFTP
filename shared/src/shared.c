@@ -185,6 +185,7 @@ void request_file(const int socket, json_object *json, const char *file_location
         return;
     }
     deserialize_file(response, response);
+    json_object_put(response);
 }
 
 char *encode_string(const char *input, size_t input_size, size_t *output_size) {
