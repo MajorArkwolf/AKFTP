@@ -77,6 +77,7 @@ int StartClient(int argc, char **argv) {
     }
 
     // loop through all the results and connect to the first we can
+    bool failed_on_all = true;
     for (p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype,
                              p->ai_protocol)) == -1) {
@@ -85,12 +86,19 @@ int StartClient(int argc, char **argv) {
         }
 
         if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            perror("client: connect");
+            //perror("client: connect");
             close(sockfd);
             continue;
+        } else {
+            failed_on_all = false;
         }
 
         break;
+    }
+
+    if (failed_on_all) {
+        perror("Failed to connect to the server.\n");
+        return -1;
     }
 
     // Check if the connection connected
@@ -250,8 +258,8 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             return 0;
         }
         pack_command_to_json(json, "get");
-        printf("\"%s\"", path);
         request_file(socket, json, path);
+        printf("Completed download of \"%s\" file\n", path);
     } else if (strcmp(tokens[0], "put") == 0) {
         if (numTokens <= 1) {
             perror("Did not provide a file");
@@ -278,7 +286,10 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         }
         json_object *response = json_tokener_parse(response_data);
         if (response != NULL) {
-            perror("Failed to parse response json");
+            int32_t response_error = json_object_get_uint64(response);
+            if (response_error < 0) {
+                perror("Failed to parse response json");
+            }
         }
         int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
         if (errorNumber == -1) {
