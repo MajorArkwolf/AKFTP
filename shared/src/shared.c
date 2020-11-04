@@ -192,7 +192,6 @@ char *encode_string(const char *input, size_t input_size, size_t *output_size) {
     struct base64_state state;
     *output_size = input_size * 1.40;
     output = calloc(*output_size, sizeof(char));
-    base64_stream_encode_init(&state, 0);
     base64_encode(input, input_size, output, output_size, 0);
     return output;
 }
@@ -200,7 +199,6 @@ char *encode_string(const char *input, size_t input_size, size_t *output_size) {
 char *decode_string(const char *input, size_t input_size, size_t *output_size) {
     char *output = NULL;
     struct base64_state state;
-    base64_stream_decode_init(&state, 0);
     output = calloc(*output_size, sizeof(char));
     base64_decode(input, input_size, output, output_size, 0);
     return output;
