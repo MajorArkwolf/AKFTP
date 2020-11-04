@@ -258,6 +258,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             return 0;
         }
         pack_command_to_json(json, "get");
+        printf("Starting download of \"%s\" file\n", path);
         request_file(socket, json, path);
         printf("Completed download of \"%s\" file\n", path);
     } else if (strcmp(tokens[0], "put") == 0) {
@@ -278,6 +279,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             errorCode = errno;
         }
         const char *data = json_object_to_json_string_length(json, 0, &size);
+        printf("Starting upload of %s completed successfully", path);
         if (send_large(socket, data, size, 0) < 0) {
             errorCode = errno;
         }
@@ -286,7 +288,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         }
         json_object *response = json_tokener_parse(response_data);
         if (response != NULL) {
-            int32_t response_error = json_object_get_uint64(response);
+            u_int64_t response_error = json_object_get_uint64(response);
             if (response_error < 0) {
                 perror("Failed to parse response json");
             }
@@ -296,6 +298,8 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             perror("Failed to upload");
             free(response);
             errorCode = errno;
+        } else {
+            printf("Upload of %s completed successfully", path);
         }
         json_object_put(response);
     } else {
