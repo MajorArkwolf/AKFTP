@@ -138,47 +138,87 @@ Each bolded word in a dot point is a key value in the JSON.
 
 \subsubsection{CD}
 Changes the current directory on the server.
+
+Client Sends.
 \begin{itemize}
 \item \textbf{command:} The command to be processed on the server.
 \item \textbf{dir:} The directory to be changed into relative to the current directory. 
+\end{itemize}
+
+Server Response.
+\begin{itemize}
 \item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.   
 \end{itemize}
+
 \subsubsection{DIR}
 Lists all the the directories and file relative the current working directory on the server.
+
+Client Sends.
 \begin{itemize}
 \item \textbf{command:} The command to be processed on the server.
-\item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
 \end{itemize}
+
+Server Response.
+\begin{itemize}
+\item \textbf{directoryError:} An error if the directory fails to open accordingly.
+\item \textbf{scandirError:} The error produced if the scan in the directory for files and folders fails. Anything below or equal to 0 is an error.
+\item \textbf{arraySize:} The size of the array of directories.
+\item \textbf{array:} The array of strings for each file / folder that is in the current working directory of the server.
+\item \textbf{currentDirectory:} The current working directory of the server so the client knows the location of the output given.
+\end{itemize}
+
 \subsubsection{PWD}
 Gives the absolute path to the current working directory of the server.
+
+Client Sends
 \begin{itemize}
 \item \textbf{command:} The command to be processed on the server.
+\end{itemize}
+
+Server Response
+\begin{itemize}
+\item \textbf{cwd:} The current working directory of the server.
 \item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
 \end{itemize}
+
 \subsubsection{PUT}
 Takes a file from the client and places it on the server.
+
+Client Sends.
 \begin{itemize}
 \item \textbf{command:} The command to be processed on the server.
 \item \textbf{filename:} The file name to write the data too.
 \item \textbf{filedata:} Data of the file that was sent, this is encoded in base64 to ensure that null terminators do not break the json string.
 \item \textbf{ensize:} The encoded length of the string.
 \item \textbf{desize:} The decoded length of the string.
+\end{itemize}
+
+Server Response.
+\begin{itemize}
 \item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
 \end{itemize}
+
 \subsubsection{GET}
 Takes a file from the server and places it on the client.
+
+Client Sends.
 \begin{itemize}
 \item \textbf{command:} The command to be processed on the server.
+\end{itemize}
+
+Server Reponse.
+\begin{itemize}
 \item \textbf{filename:} The file name to write the data too.
 \item \textbf{filedata:} Data of the file that was sent, this is encoded in base64 to ensure that null terminators do not break the json string.
 \item \textbf{ensize:} The encoded length of the string.
 \item \textbf{desize:} The decoded length of the string.
 \item \textbf{error:} The error number reported by the operation of the function. 0 represents no error.
 \end{itemize}
+
 \subsection{Send and Receive}
 The functions listed above all use the existing TCP protocol implemented by the POSIX standards.
 \subsubsection{Send Protocol}
-The send protocol that is implemented follows these rules.
+The send protocol that is implemented following these rules. The protocol sends only JSON objects that have been deserialised.
 \begin{enumerate}
     \item Attempt to send the size of the data the recipient needs to receive.
     \item Await a response to confirm the recipient is ready. If no value or a false value is received, terminate send.
@@ -187,7 +227,7 @@ The send protocol that is implemented follows these rules.
     \item Return 0 if success otherwise return -1.
 \end{enumerate}
 \subsubsection{Receive Protocol}
-The receive protocol that is implemented follows these rules.
+The receive protocol that is implemented following these rules. The protocol receives only JSON objects that have been deserialised. Once the final step is complete it is then serialised back into JSON to be parsed.
 \begin{enumerate}
     \item Wait for sender to confirm the size of the data.
     \item If size is received acknowledge by sending true, else send false and terminate receive process.
