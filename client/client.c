@@ -216,10 +216,9 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         }
 
     } else if (strcmp(tokens[0], "cd") == 0) {
-        //TODO Support file paths with spaces
         if (tokens[1] != NULL) {
             pack_command_to_json(json, "cd");
-            json_object *dir = json_object_new_string(tokens[1]);
+            json_object *dir = json_object_new_string(path);
             json_object_object_add(json, "dir", dir);
             const char *data = json_object_to_json_string_length(json, 0, &size);
             if (data == NULL) {
@@ -257,7 +256,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             return 0;
         }
         pack_command_to_json(json, "get");
-        request_file(socket, json, tokens[1]);
+        request_file(socket, json, path);
     } else if (strcmp(tokens[0], "put") == 0) {
         if (numTokens <= 1) {
             perror("Did not provide a file");
@@ -268,7 +267,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             return 0;
         }
         pack_command_to_json(json, "put");
-        json_object *filename = json_object_new_string(tokens[1]);
+        json_object *filename = json_object_new_string(path);
         json_object_object_add(json, "filename", filename);
         int error = serialize_file(json);
         if (error < 0) {
