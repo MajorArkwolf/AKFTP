@@ -16,9 +16,12 @@
 #include <string.h>
 #include "directory_handling.h"
 #include <dirent.h>
+#include <fcntl.h>
 
 #define PORT "3490"  // the port users will be connecting to
 #define BACKLOG 10     // how many pending connections queue will hold
+
+static bool keepRunning = true;
 
 void sigchld_handler(int s) {
     (void) s; // quiet unused variable warning
@@ -29,6 +32,12 @@ void sigchld_handler(int s) {
     while (waitpid(-1, NULL, WNOHANG) > 0);
 
     errno = saved_errno;
+}
+
+void sigchld_handler_term(int s) {
+    if (s > 0) {
+        keepRunning = false;
+    }
 }
 
 json_object *HandleRequest(json_object *json) {
@@ -190,12 +199,17 @@ int main(void) {
     }
 
     printf("server: waiting for connections...\n");
+    pid_t child_procceses[1000];
+    size_t num_of_child_processes = 0;
+    signal(SIGINT, sigchld_handler_term);
 
-    while (1) {  // main accept() loop
+    while (keepRunning) {  // main accept() loop
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);
         if (new_fd == -1) {
             perror("failed to connect");
+            continue;
+        } else if (new_fd == 0) {
             continue;
         }
 
@@ -203,12 +217,21 @@ int main(void) {
                   get_in_addr((struct sockaddr *) &their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
-
-        if (!fork()) { // this is the child process
+        pid_t new_proc = fork();
+        if (new_proc == 0) { // this is the child process
             close(sockfd);
             StartConnection(new_fd);
+        } else {
+            child_procceses[num_of_child_processes] = new_proc;
+            ++num_of_child_processes;
         }
         close(new_fd);  // parent doesn't need this
     }
+    printf("Killing all Child Processes...\n");
+    for (size_t i = 0; i < num_of_child_processes; ++i) {
+        kill(child_procceses[i], SIGQUIT);
+    }
+    printf("Childreen have been reaped. Have a good day.\n");
+
     return EXIT_SUCCESS;
 }
