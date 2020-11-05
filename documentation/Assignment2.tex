@@ -96,6 +96,13 @@
 .3 \myfolder{green}{Assignment2.tex}.
 }
 
+\section{PreInformation}
+Extension from the Unit Coordinator was given and is attached below. \\
+\includegraphics[width=\textwidth]{extension}
+
+The group also asked permission to use CMake to generate the Make file. Hong Advised as long as it can make a make file and build using make this was acceptable. The guide on how to use Cmake is in the Building section.\\
+\includegraphics[width=\textwidth]{make}
+
 \section{Information}
 Design and implement a simple network protocol that can be used to download files from a remote site and to upload files to a remote site, and a client and a server programs that communicate using that protocol. The protocol is using TCP as its transport layer protocol. The server can have multiple clients request simultaneously. For simplicity we did not consider any authentication process in this project, hence the server will provide its service to any client with the right site address and port number.
 
@@ -234,54 +241,62 @@ or
 \textbf{Task:} Execute Client\\
 \textbf{Action:} User input into shell "./myftp"\\
 \textbf{Result:} Was able to connect to the local myftpd server when the server was running on my local machine.\\
+\includegraphics[width=\textwidth]{testpictures/connect}
 
 \textbf{Task:} Execute Client with DNS\\
 \textbf{Action:} User Input into shell "./myftp arkwolf.com"\\
 \textbf{Result:} Was able to connect to the remote server myftpd server when the server was running on my remote machine.\\
+\includegraphics[width=\textwidth]{testpictures/connect}
 
 \textbf{Task:} Test the pwd command to the server.\\
 \textbf{Action:} pwd\\
 \textbf{Result:} The server returned its current working directory and performed as expected. Output: /Users/arkwolf/Documents/Coding Schoolwork/ICT374-Assignment2-AKFTP/cmake-build-debug/final/server\\
+\includegraphics[width=\textwidth]{testpictures/pwd}
 
 \textbf{Task:} Test the lpwd command to the client.\\
 \textbf{Action:} lpwd\\
 \textbf{Result:} The client returned its current working directory and performed as expected. Output: /Users/arkwolf/cuments/Coding/Schoolwork/ICT374-Assignment2-AKFTP/cmake-build-debug/final/client\\
+\includegraphics[width=\textwidth]{testpictures/lpwd}
 
 \textbf{Task:} Change the directory using the CD command.\\
 \textbf{Action:} cd ../\\
 \textbf{Result:} \\
+\includegraphics[width=\textwidth]{testpictures/cdserver}
 
 \textbf{Task:} Change the directory using the local cd command\\
 \textbf{Action:} lcd ../\\
-\textbf{Result:} \\
-
-\textbf{Task:} Get a list of the directories inside the servers current working directory.\\
-\textbf{Action:} dir\\
-\textbf{Result:} \\
+\textbf{Result:} No output, indicating a success.\\
+\includegraphics[width=\textwidth]{testpictures/lcd}
 
 \textbf{Task:} Get a list of the directories inside the servers current working directory.\\
 \textbf{Action:} dir\\
 \textbf{Result:} he server returned a list of its folders and files at its current working directory as expected.\\
+\includegraphics[width=\textwidth]{testpictures/dir}
 
 \textbf{Task:} Get a list of the directories inside the clients current working directory.\\\
 \textbf{Action:} ldir\\
 \textbf{Result:} The client returned a list of its folders and files at its current working directory as expected.\\
+\includegraphics[width=\textwidth]{testpictures/ldir}
 
 \textbf{Task:} Upload a text file.\\
 \textbf{Action:} put touch.txt\\
 \textbf{Result:} The text file from the clients working directory was uploaded to the servers local directory.\\
+\includegraphics[width=\textwidth]{testpictures/puttext}
 
 \textbf{Task:} Upload a binary file\\
 \textbf{Action:} put myftpd\\
 \textbf{Result:} The binary file from the clients working directory was uploaded to the servers local directory.\\
+\includegraphics[width=\textwidth]{testpictures/putbinary}
 
 \textbf{Task:} Download a text file\\
 \textbf{Action:} get touch.txt\\
 \textbf{Result:} The text file from the clients working directory was downloaded to the clients local directory.\\
+\includegraphics[width=\textwidth]{testpictures/gettext}
 
 \textbf{Task:} Download a binary file\\
 \textbf{Action:} get myftpd\\
 \textbf{Result:} The binary file from the clients working directory was downloaded to the clients local directory.\\
+\includegraphics[width=\textwidth]{testpictures/getbinary}
 
 \newpage
 \section{Source Code Listing}
