@@ -274,7 +274,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             perror("Did not provide a file");
             errorCode = errno;
         }
-        if (!check_if_file_exists(tokens[1])) {
+        if (!check_if_file_exists(path)) {
             perror("File not found");
             errorCode = errno;
         }
