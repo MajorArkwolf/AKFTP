@@ -1,3 +1,4 @@
+#include "shared.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -5,7 +6,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "shared.h"
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
@@ -16,9 +16,12 @@
 #include <string.h>
 #include "directory_handling.h"
 #include <dirent.h>
+#include <fcntl.h>
 
 #define PORT "3490"  // the port users will be connecting to
 #define BACKLOG 10     // how many pending connections queue will hold
+
+static bool keepRunning = true;
 
 void sigchld_handler(int s) {
     (void) s; // quiet unused variable warning
@@ -31,11 +34,17 @@ void sigchld_handler(int s) {
     errno = saved_errno;
 }
 
+void sigchld_handler_term(int s) {
+    if (s > 0) {
+        keepRunning = false;
+    }
+}
+
 json_object *HandleRequest(json_object *json) {
     json_object *response = json_object_new_object();
     const char *command = unpack_command_from_json(json);
     int32_t errorNumber = 0;
-    if(strcmp(command, "pwd") == 0) {
+    if (strcmp(command, "pwd") == 0) {
         json_object *cwd = json_object_new_string(GetCurrentWorkingDirectory(&errorNumber));
         json_object *error = json_object_new_int(errorNumber);
         json_object_object_add(response, "error", error);
@@ -46,7 +55,7 @@ json_object *HandleRequest(json_object *json) {
         json_object *error = json_object_new_int(errorNumber);
         json_object_object_add(response, "error", error);
     } else if (strcmp(command, "dir") == 0) {
-        int directoryError = 0;
+        int directoryErrorNum = 0;
         char *currentDirectory = GetCurrentWorkingDirectory(&errorNumber);
         if (currentDirectory == NULL) {
             //-1 sucess status means getting current working directory failed
@@ -57,16 +66,16 @@ json_object *HandleRequest(json_object *json) {
         } else {
             int size = 0;
             int scandirError = 0;
-            char** fileList = GetListOfFiles( currentDirectory, &size, &scandirError);
+            char **fileList = GetListOfFiles(currentDirectory, &size, &scandirError);
             json_object *array = json_object_new_array_ext(size);
-            for (int i = 0; i < size ; ++i) {
+            for (int i = 0; i < size; ++i) {
                 json_object_array_add(array, json_object_new_string(fileList[i]));
                 free(fileList[i]);
             }
             json_object_object_add(response, "currentDirectory", json_object_new_string(currentDirectory));
             json_object_object_add(response, "array", array);
             json_object_object_add(response, "scandirError", json_object_new_int(scandirError));
-            json_object_object_add(response, "directoryError", json_object_new_int(directoryError));
+            json_object_object_add(response, "directoryError", json_object_new_int(directoryErrorNum));
             json_object_object_add(response, "arraySize", json_object_new_int(size));
             free(currentDirectory);
             free(fileList);
@@ -94,6 +103,39 @@ json_object *HandleRequest(json_object *json) {
         json_object_object_add(response, "error", error);
     }
     return response;
+}
+
+void StartConnection(int socket) {
+    char *buf = NULL;
+    int numbytes = 0;
+    json_object *json = NULL;
+    json_object *response = NULL;
+    int error = 0;
+    const char * cwd = GetCurrentWorkingDirectory(&error);
+    while (1) {
+        if ((numbytes = receive_large(socket, &buf, 0)) == -1) {
+            perror("recv");
+            close(socket);
+            break;
+        }
+        json = json_tokener_parse(buf);
+        if (json != NULL) {
+            response = HandleRequest(json);
+            size_t size = 0;
+            const char *data = json_object_to_json_string_length(response, 0, &size);
+            send_large(socket, data, size, 0);
+        }
+        log_to_file(cwd, json, response, socket);
+        if (json != NULL) {
+            //while (json_object_put(response) > 1) {}
+        }
+
+        if (response != NULL) {
+            //while (json_object_put(response) > 1) {}
+        }
+    }
+    json_object_put(json);
+    json_object_put(response);
 }
 
 int main(void) {
@@ -160,12 +202,17 @@ int main(void) {
     }
 
     printf("server: waiting for connections...\n");
+    pid_t child_procceses[1000];
+    size_t num_of_child_processes = 0;
+    signal(SIGINT, sigchld_handler_term);
 
-    while (1) {  // main accept() loop
+    while (keepRunning) {  // main accept() loop
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);
         if (new_fd == -1) {
-            perror("accept");
+            perror("failed to connect");
+            continue;
+        } else if (new_fd == 0) {
             continue;
         }
 
@@ -173,32 +220,21 @@ int main(void) {
                   get_in_addr((struct sockaddr *) &their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
-
-        if (!fork()) { // this is the child process
-            bool close_program = false;
-            char *buf = NULL;
-            int numbytes = 0;
-            json_object *json = NULL;
-            json_object *response = NULL;
+        pid_t new_proc = fork();
+        if (new_proc == 0) { // this is the child process
             close(sockfd);
-            while (!close_program) {
-                if ((numbytes = receive_large(new_fd, &buf, 0)) == -1) {
-                    perror("recv");
-                    close(new_fd);
-                    exit(1);
-                }
-                json = json_tokener_parse(buf);
-                if (json != NULL) {
-                    response = HandleRequest(json);
-                    size_t size = 0;
-                    const char *data = json_object_to_json_string_length(response, 0, &size);
-                    send_large(new_fd, data, size, 0);
-                    free(json);
-                    free(response);
-                }
-            }
+            StartConnection(new_fd);
+        } else {
+            child_procceses[num_of_child_processes] = new_proc;
+            ++num_of_child_processes;
         }
         close(new_fd);  // parent doesn't need this
     }
+    printf("Killing all Child Processes...\n");
+    for (size_t i = 0; i < num_of_child_processes; ++i) {
+        kill(child_procceses[i], SIGQUIT);
+    }
+    printf("Childreen have been reaped. Have a good day.\n");
+
     return EXIT_SUCCESS;
 }

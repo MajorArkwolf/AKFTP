@@ -9,6 +9,7 @@ This software is not intended for commercial use and is a proof of concept of de
 
 #### Dependencies
 * json-c
+* base64
 #### Building
 After cloning please ensure you have the submodules.
 ```
