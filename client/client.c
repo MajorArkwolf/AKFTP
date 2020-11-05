@@ -279,7 +279,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             errorCode = errno;
         }
         const char *data = json_object_to_json_string_length(json, 0, &size);
-        printf("Starting upload of %s completed successfully", path);
+        printf("Starting upload of %s completed successfully...\n", path);
         if (send_large(socket, data, size, 0) < 0) {
             errorCode = errno;
         }
@@ -290,7 +290,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         if (response != NULL) {
             u_int64_t response_error = json_object_get_uint64(response);
             if (response_error < 0) {
-                perror("Failed to parse response json");
+                perror("Failed to parse response json.\n");
             }
         }
         int errorNumber = json_object_get_int((json_object_object_get(response, "error")));
@@ -299,7 +299,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
             free(response);
             errorCode = errno;
         } else {
-            printf("Upload of %s completed successfully", path);
+            printf("Upload of %s completed successfully\n", path);
         }
         json_object_put(response);
     } else {

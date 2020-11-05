@@ -16,6 +16,7 @@
 #include <string.h>
 #include "directory_handling.h"
 #include <dirent.h>
+#include <fcntl.h>
 
 #define PORT "3490"  // the port users will be connecting to
 #define BACKLOG 10     // how many pending connections queue will hold
@@ -201,11 +202,14 @@ int main(void) {
     pid_t child_procceses[1000];
     size_t num_of_child_processes = 0;
     signal(SIGINT, sigchld_handler_term);
+
     while (keepRunning) {  // main accept() loop
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);
         if (new_fd == -1) {
             perror("failed to connect");
+            continue;
+        } else if (new_fd == 0) {
             continue;
         }
 
