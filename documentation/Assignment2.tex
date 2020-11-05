@@ -103,14 +103,24 @@ Extension from the Unit Coordinator was given and is attached below. \\
 The group also asked permission to use CMake to generate the Make file. Hong Advised as long as it can make a make file and build using make this was acceptable. The guide on how to use Cmake is in the Building section.\\
 \includegraphics[width=\textwidth]{make}
 
+The group also asked that we be able to use JSON for our messaging. This allowed us to simplify our string parsing. Permission was granted. This also meant we needed to use an encoder for binary data as any null terminators would break our JSON stream. Attached is the email approving this.\\
+\includegraphics[width=\textwidth]{json}
+
 \section{Information}
 Design and implement a simple network protocol that can be used to download files from a remote site and to upload files to a remote site, and a client and a server programs that communicate using that protocol. The protocol is using TCP as its transport layer protocol. The server can have multiple clients request simultaneously. For simplicity we did not consider any authentication process in this project, hence the server will provide its service to any client with the right site address and port number.
 
 \section{Self Diagnosis and Evaluation}
+\subsection{Working}
 \begin{itemize}
 \item The way we have implemented our code makes it portable while also being cross platform on both macOS to Linux. This does make it more complicated and with out extensive checking possibly more error prone.
 \item Using a shared library between our client and our server gives us the ability to keep shared code consistent between both the server and client. This avoids any issues of changes to one causing unpredictable behaviour in the other.
 \item Using a third party library for serialisation and deserialisation means that our backbone is robust and simpler to parse. This removes any headaches that come with parsing strings in C.
+\end{itemize}
+
+\subsection{Not Working}
+\begin{itemize}
+    \item While the program can reap child processes, Due to the socket blocking it wont be able to end our connection while loop until another client attempts to connect. Releasing the block and allowing the program to reap its children. Had we more time this could have been easily been fixed.
+    \item Both Put and Get will not work from files from different folders that are not in the current working directory. This is due to the way we handle the transfer of data.
 \end{itemize}
 
 \section{Solution Breakdown}
@@ -123,6 +133,9 @@ A short fall in using JSON is that any string must only be null terminated once.
 \section{Protocol}
 \subsection{Commands and JSON}
 As mentioned prior, JSON is the backbone of the FTP client and server as it allows for serialisation and deserialisation of the data between the two. Another benefit of implementing JSON is that if an error occurs in this process we can also assume that the data sent was not completed.
+
+Each bolded word in a dot point is a key value in the JSON.
+
 \subsubsection{CD}
 Changes the current directory on the server.
 \begin{itemize}
@@ -190,11 +203,18 @@ The following dependencies are required for Linux.
     \item Cmake 3.14
     \item gcc or clang compiler
 \end{itemize}
+\begin{lstlisting}
+        sudo apt install cmake
+\end{lstlisting}
 \subsubsection*{macOS}
 \begin{itemize}
     \item Cmake 3.14
+    \item Brew
     \item gcc or clang compiler
 \end{itemize}
+\begin{lstlisting}
+        brew install cmake
+\end{lstlisting}
 \subsection{Building}
 \begin{center}
 \textbf{Please ensure you have the dependencies before you continue.}
