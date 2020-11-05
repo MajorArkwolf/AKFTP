@@ -31,7 +31,7 @@ ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
         return -1;
     }
     if (!rec) {
-        perror("Failed to acknowladge large send.");
+        perror("Failed to acknowledge large send.");
         return -1;
     }
     ssize_t sent_size = 0;
