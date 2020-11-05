@@ -320,7 +320,7 @@ or
 
 \textbf{Task:} Change the directory using the CD command.\\
 \textbf{Action:} cd ../\\
-\textbf{Result:} \\
+\textbf{Result:} No output, indicating a success.\\
 \includegraphics[width=\textwidth]{testpictures/cdserver}
 
 \textbf{Task:} Change the directory using the local cd command\\
@@ -330,7 +330,7 @@ or
 
 \textbf{Task:} Get a list of the directories inside the servers current working directory.\\
 \textbf{Action:} dir\\
-\textbf{Result:} he server returned a list of its folders and files at its current working directory as expected.\\
+\textbf{Result:} The server returned a list of its folders and files at its current working directory as expected.\\
 \includegraphics[width=\textwidth]{testpictures/dir}
 
 \textbf{Task:} Get a list of the directories inside the clients current working directory.\\\
@@ -350,13 +350,24 @@ or
 
 \textbf{Task:} Download a text file\\
 \textbf{Action:} get touch.txt\\
-\textbf{Result:} The text file from the clients working directory was downloaded to the clients local directory.\\
+\textbf{Result:} The text file from the servers working directory was downloaded to the clients local directory.\\
 \includegraphics[width=\textwidth]{testpictures/gettext}
 
 \textbf{Task:} Download a binary file\\
 \textbf{Action:} get myftpd\\
-\textbf{Result:} The binary file from the clients working directory was downloaded to the clients local directory.\\
+\textbf{Result:} The binary file from the servers working directory was downloaded to the clients local directory.\\
 \includegraphics[width=\textwidth]{testpictures/getbinary}
+
+\textbf{Task:} Download a file with spaces\\
+\textbf{Action:} get "space pic.jpg"\\
+\textbf{Result:} The binary file with spaces in the filename from the servers working directory was downloaded to the clients local directory.\\
+\includegraphics[width=\textwidth]{testpictures/space_get}
+
+\textbf{Task:} Upload a file with spaces\\
+\textbf{Action:} put "space pic.jpg"\\
+\textbf{Result:} The binary file with spaces in the filename from the clients working directory was uploaded to the servers local directory.\\
+\includegraphics[width=\textwidth]{testpictures/space_put}
+
 
 \newpage
 \section{Source Code Listing}
