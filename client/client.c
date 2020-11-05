@@ -130,7 +130,14 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     if (strcmp(tokens[0], "quit") == 0 || strcmp(tokens[0], "exit") == 0) {
         errorCode = -2;
     } else if (strcmp(tokens[0], "help") == 0) {
-        printf("Not implemented yet, good luck. Type quit or exit to exit program.\n");
+        printf("pwd\t- Returns the current working directory of the connected server.\n");
+        printf("lpwd\t- Returns the current working directory of the client.\n");
+        printf("dir\t- Returns a list of all the files in the current working directory of the connected server.\n");
+        printf("ldir\t- Returns a list of all the files in the current working directory of the client.\n");
+        printf("cd\t- Changes the current working directory of the server to the path");
+        printf("lcd\t- ");
+        printf("get\t- ");
+        printf("put\t- ");
         errorCode = 0;
     } else if (strcmp(tokens[0], "pwd") == 0) {
         pack_command_to_json(json, "pwd");
