@@ -116,7 +116,7 @@ void StartConnection(int socket) {
         if ((numbytes = receive_large(socket, &buf, 0)) == -1) {
             perror("recv");
             close(socket);
-            exit(1);
+            break;
         }
         json = json_tokener_parse(buf);
         if (json != NULL) {
@@ -129,10 +129,13 @@ void StartConnection(int socket) {
         if (json != NULL) {
             //while (json_object_put(response) > 1) {}
         }
+
         if (response != NULL) {
             //while (json_object_put(response) > 1) {}
         }
     }
+    json_object_put(json);
+    json_object_put(response);
 }
 
 int main(void) {
