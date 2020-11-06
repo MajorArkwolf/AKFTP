@@ -35,7 +35,7 @@ ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
         return -1;
     }
     ssize_t sent_size = 0;
-    while (file_size != sent_size) {
+    while (file_size != data_size) {
         ssize_t last_send_size = send(socket, &data[sent_size], file_size - sent_size, flags);
         if (last_send_size == -1) {
             perror("send");
@@ -190,7 +190,6 @@ void request_file(const int socket, json_object *json, const char *file_location
 
 char *encode_string(const char *input, size_t input_size, size_t *output_size) {
     char *output = NULL;
-    struct base64_state state;
     *output_size = input_size * 1.40;
     output = calloc(*output_size, sizeof(char));
     base64_encode(input, input_size, output, output_size, 0);
@@ -199,7 +198,6 @@ char *encode_string(const char *input, size_t input_size, size_t *output_size) {
 
 char *decode_string(const char *input, size_t input_size, size_t *output_size) {
     char *output = NULL;
-    struct base64_state state;
     output = calloc(*output_size, sizeof(char));
     base64_decode(input, input_size, output, output_size, 0);
     return output;
