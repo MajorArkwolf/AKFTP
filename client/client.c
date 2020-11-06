@@ -57,7 +57,7 @@ int RunClient(int socket) {
 }
 
 int StartClient(int argc, char **argv) {
-    int errorCode = 0;
+    //int errorCode = 0;
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
     int rv;

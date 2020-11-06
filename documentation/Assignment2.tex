@@ -115,6 +115,9 @@ Design and implement a simple network protocol that can be used to download file
 \item The way we have implemented our code makes it portable while also being cross platform on both macOS to Linux. This does make it more complicated and with out extensive checking possibly more error prone.
 \item Using a shared library between our client and our server gives us the ability to keep shared code consistent between both the server and client. This avoids any issues of changes to one causing unpredictable behaviour in the other.
 \item Using a third party library for serialisation and deserialisation means that our backbone is robust and simpler to parse. This removes any headaches that come with parsing strings in C.
+\item All functions that are required are implemented and working. This includes PUT, GET, CD, LCD, DIR, LDIR, PWD, LPWD and QUIT.
+\item PUT and GET work with both text and binary data.
+\item The server is able to work across the internet and has been tested with multiple clients connecting at the same time with no issues.
 \end{itemize}
 
 \subsection{Not Working}
@@ -161,7 +164,7 @@ Client Sends.
 Server Response.
 \begin{itemize}
 \item \textbf{directoryError:} An error if the directory fails to open accordingly.
-\item \textbf{scandirError:} The error produced if the scan in the directory for files and folders fails. Anything below or equal to 0 is an error.
+\item \textbf{scandirError:} The error produced if the scan in the directory for files and folders fails. Anything above or equal to 0 is an error.
 \item \textbf{arraySize:} The size of the array of directories.
 \item \textbf{array:} The array of strings for each file / folder that is in the current working directory of the server.
 \item \textbf{currentDirectory:} The current working directory of the server so the client knows the location of the output given.
@@ -271,7 +274,77 @@ Now call make to begin the compilation process like so.
 \begin{lstlisting}
 make myftp myftpd    
 \end{lstlisting}
-The compiler should have produced 2 unix executables, myftp is the client program and myftpd is the server program.
+The compiler should have produced 2 unix executables, myftp is the client program and myftpd is the server program. Below is the build output of the make file that was compiled with "-Wall -Wextra" flags showing the program compiles with no warnings or errors. The program was also ran using Valgrind to find and fix any memory leaks. 
+
+\begin{lstlisting}
+Scanning dependencies of target base64
+[  1%] Building C object lib/base64/CMakeFiles/base64.dir/lib/arch/avx2/codec.c.o
+[  3%] Building C object lib/base64/CMakeFiles/base64.dir/lib/arch/generic/codec.c.o
+[  5%] Building C object lib/base64/CMakeFiles/base64.dir/lib/arch/neon32/codec.c.o
+[  7%] Building C object lib/base64/CMakeFiles/base64.dir/lib/arch/neon64/codec.c.o
+[  9%] Building C object lib/base64/CMakeFiles/base64.dir/lib/arch/ssse3/codec.c.o
+[ 11%] Building C object lib/base64/CMakeFiles/base64.dir/lib/arch/sse41/codec.c.o
+[ 13%] Building C object lib/base64/CMakeFiles/base64.dir/lib/arch/sse42/codec.c.o
+[ 15%] Building C object lib/base64/CMakeFiles/base64.dir/lib/arch/avx/codec.c.o
+[ 17%] Building C object lib/base64/CMakeFiles/base64.dir/lib/lib.c.o
+[ 19%] Building C object lib/base64/CMakeFiles/base64.dir/lib/codec_choose.c.o
+[ 21%] Building C object lib/base64/CMakeFiles/base64.dir/lib/tables/tables.c.o
+[ 23%] Linking C static library libbase64.a
+[ 23%] Built target base64
+Scanning dependencies of target json-c
+[ 25%] Building C object lib/json-c/CMakeFiles/json-c.dir/arraylist.c.o
+[ 27%] Building C object lib/json-c/CMakeFiles/json-c.dir/debug.c.o
+[ 29%] Building C object lib/json-c/CMakeFiles/json-c.dir/json_c_version.c.o
+[ 31%] Building C object lib/json-c/CMakeFiles/json-c.dir/json_object.c.o
+[ 33%] Building C object lib/json-c/CMakeFiles/json-c.dir/json_object_iterator.c.o
+[ 35%] Building C object lib/json-c/CMakeFiles/json-c.dir/json_pointer.c.o
+[ 37%] Building C object lib/json-c/CMakeFiles/json-c.dir/json_tokener.c.o
+[ 39%] Building C object lib/json-c/CMakeFiles/json-c.dir/json_util.c.o
+[ 41%] Building C object lib/json-c/CMakeFiles/json-c.dir/json_visit.c.o
+[ 43%] Building C object lib/json-c/CMakeFiles/json-c.dir/linkhash.c.o
+[ 45%] Building C object lib/json-c/CMakeFiles/json-c.dir/printbuf.c.o
+[ 47%] Building C object lib/json-c/CMakeFiles/json-c.dir/random_seed.c.o
+[ 49%] Building C object lib/json-c/CMakeFiles/json-c.dir/strerror_override.c.o
+[ 50%] Linking C shared library libjson-c.dylib
+[ 50%] Built target json-c
+Scanning dependencies of target myftp-shared
+[ 52%] Building C object shared/CMakeFiles/myftp-shared.dir/src/shared.c.o
+[ 54%] Building C object shared/CMakeFiles/myftp-shared.dir/src/token.c.o
+[ 56%] Building C object shared/CMakeFiles/myftp-shared.dir/src/directory_handling.c.o
+[ 58%] Linking C static library libmyftp-shared.a
+[ 58%] Built target myftp-shared
+Scanning dependencies of target myftp
+[ 60%] Building C object CMakeFiles/myftp.dir/client/main.c.o
+[ 62%] Building C object CMakeFiles/myftp.dir/client/client.c.o
+[ 64%] Linking C executable myftp
+[ 64%] Built target myftp
+Scanning dependencies of target myftpd
+[ 66%] Building C object CMakeFiles/myftpd.dir/server/main.c.o
+[ 68%] Linking C executable myftpd
+[ 68%] Built target myftpd
+Scanning dependencies of target json-c-static
+[ 70%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/arraylist.c.o
+[ 72%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/debug.c.o
+[ 74%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/json_c_version.c.o
+[ 76%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/json_object.c.o
+[ 78%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/json_object_iterator.c.o
+[ 80%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/json_pointer.c.o
+[ 82%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/json_tokener.c.o
+[ 84%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/json_util.c.o
+[ 86%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/json_visit.c.o
+[ 88%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/linkhash.c.o
+[ 90%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/printbuf.c.o
+[ 92%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/random_seed.c.o
+[ 94%] Building C object lib/json-c/CMakeFiles/json-c-static.dir/strerror_override.c.o
+[ 96%] Linking C static library libjson-c.a
+[ 96%] Built target json-c-static
+Scanning dependencies of target json_parse
+[ 98%] Building C object lib/json-c/apps/CMakeFiles/json_parse.dir/json_parse.c.o
+[100%] Linking C executable ../../../json_parse
+[100%] Built target json_parse    
+\end{lstlisting}
+
+
 \section{Executing}
 \subsection{Server}
 To run the server just execute myftpd, no additional information is required.
