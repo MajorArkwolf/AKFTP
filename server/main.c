@@ -126,15 +126,8 @@ void StartConnection(int socket) {
             send_large(socket, data, size, 0);
         }
         log_to_file(cwd, json, response, socket);
-        if (json != NULL) {
-            //while (json_object_put(json) > 0);
-            free(json);
-        }
-
-        if (response != NULL) {
-            //while (json_object_put(response) > 0);
-            free(response);
-        }
+        json_object_put(response);
+        json_object_put(json);
     }
 }
 
