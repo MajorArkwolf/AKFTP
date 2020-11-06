@@ -34,7 +34,11 @@ int RunClient(int socket) {
         int numTokens = 0;
         int commandResult = 0;
         printf(">");
-        fgets(message, MESSAGE_SIZE, stdin);
+        if(fgets(message, MESSAGE_SIZE, stdin) == NULL)
+        {
+            break;
+        }
+
         strtok(message, "\n");
         //Tokenise our string
         numTokens = Tokenise(message, tokens, "\n\t\" ");
