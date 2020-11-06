@@ -24,9 +24,10 @@ void *get_in_addr(struct sockaddr *sa) {
 
 ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
     u_int64_t file_size = (u_int64_t) data_size;
+    const size_t max_data_size = 1000;
     send(socket, &file_size, sizeof(u_int64_t), flags);
     bool rec = false;
-    if ((recv(socket, &rec, MAXDATASIZE - 1, flags)) == -1) {
+    if ((recv(socket, &rec, max_data_size - 1, flags)) == -1) {
         perror("recv");
         return -1;
     }
@@ -35,7 +36,7 @@ ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
         return -1;
     }
     ssize_t sent_size = 0;
-    while (file_size != data_size) {
+    while (file_size != sent_size) {
         ssize_t last_send_size = send(socket, &data[sent_size], file_size - sent_size, flags);
         if (last_send_size == -1) {
             perror("send");
@@ -47,11 +48,12 @@ ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
 }
 
 ssize_t receive_large(int socket, char **buffer, int flags) {
+    const size_t max_data_size = 1000;
     free(*buffer);
     char *buffer2 = NULL;
     u_int64_t neg_file_size = 0;
     bool rec = false;
-    if ((recv(socket, &neg_file_size, MAXDATASIZE - 1, flags)) == -1) {
+    if ((recv(socket, &neg_file_size, max_data_size - 1, flags)) == -1) {
         perror("recv");
         send(socket, &rec, sizeof(bool), flags);
         return -1;
