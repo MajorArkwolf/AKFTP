@@ -7,7 +7,7 @@ project(${PROJECT_NAME} LANGUAGES C)
 
 # Clang sanitizer settings.
 set(SANITIZER_OS "Darwin,Linux")
-set(SANITIZER_FLAGS "-fsanitize=address,undefined,leak")
+#set(SANITIZER_FLAGS "-fsanitize=address,undefined,leak")
 
 # Treat warnings as errors.
 option(WarningsAsErrors "WarningsAsErrors" OFF)

@@ -35,7 +35,8 @@ ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
         return -1;
     }
     ssize_t sent_size = 0;
-    while (file_size != sent_size) {
+    ssize_t file_size_s = (ssize_t)file_size;
+    while (file_size_s != sent_size) {
         ssize_t last_send_size = send(socket, &data[sent_size], file_size - sent_size, flags);
         if (last_send_size == -1) {
             perror("send");
