@@ -301,7 +301,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         }
         json_object *response = json_tokener_parse(response_data);
         if (response != NULL) {
-            u_int64_t response_error = json_object_get_uint64(response);
+            int64_t response_error = json_object_get_int64(response);
             if (response_error < 0) {
                 perror("Failed to parse response json.\n");
             }

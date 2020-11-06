@@ -216,7 +216,10 @@ void log_to_file(const char *wd, json_object *from_client, json_object *to_clien
     char output[10000] = {""};
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
-    assert(strftime(output, sizeof(output), "%c", tm) > 0);
+    if(!(strftime(output, sizeof(output), "%c", tm) > 0))
+    {
+        exit(-1);
+    }
     strcat(output, ": ");
     struct sockaddr_in peer;
     socklen_t addressLength = sizeof(peer);
