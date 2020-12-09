@@ -27,7 +27,7 @@ ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
     const size_t max_data_size = 1000;
     send(socket, &file_size, sizeof(u_int64_t), flags);
     bool rec = false;
-    if ((recv(socket, &rec, max_data_size - 1, flags)) == -1) {
+    if ((recv(socket, &rec, sizeof(bool), flags)) == -1) {
         perror("recv");
         return -1;
     }
@@ -36,7 +36,8 @@ ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
         return -1;
     }
     ssize_t sent_size = 0;
-    while (file_size != sent_size) {
+    ssize_t file_size_s = (ssize_t)file_size;
+    while (file_size_s != sent_size) {
         ssize_t last_send_size = send(socket, &data[sent_size], file_size - sent_size, flags);
         if (last_send_size == -1) {
             perror("send");
@@ -53,7 +54,7 @@ ssize_t receive_large(int socket, char **buffer, int flags) {
     char *buffer2 = NULL;
     u_int64_t neg_file_size = 0;
     bool rec = false;
-    if ((recv(socket, &neg_file_size, max_data_size - 1, flags)) == -1) {
+    if ((recv(socket, &neg_file_size, sizeof(u_int64_t), flags)) == -1) {
         perror("recv");
         send(socket, &rec, sizeof(bool), flags);
         return -1;
@@ -217,7 +218,10 @@ void log_to_file(const char *wd, json_object *from_client, json_object *to_clien
     char output[10000] = {""};
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
-    assert(strftime(output, sizeof(output), "%c", tm) > 0);
+    if(!(strftime(output, sizeof(output), "%c", tm) > 0))
+    {
+        exit(-1);
+    }
     strcat(output, ": ");
     struct sockaddr_in peer;
     socklen_t addressLength = sizeof(peer);

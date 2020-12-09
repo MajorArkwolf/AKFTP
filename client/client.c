@@ -34,7 +34,11 @@ int RunClient(int socket) {
         int numTokens = 0;
         int commandResult = 0;
         printf(">");
-        fgets(message, MESSAGE_SIZE, stdin);
+        if(fgets(message, MESSAGE_SIZE, stdin) == NULL)
+        {
+            break;
+        }
+
         strtok(message, "\n");
         //Tokenise our string
         numTokens = Tokenise(message, tokens, "\n\t\" ");
@@ -130,7 +134,8 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
     if (strcmp(tokens[0], "quit") == 0 || strcmp(tokens[0], "exit") == 0) {
         errorCode = -2;
     } else if (strcmp(tokens[0], "help") == 0) {
-        printf("\npwd\t\t- Returns the current working directory of the connected server.\n");
+        printf("\nquit\t\t- Quits the current FTP session.\n");
+        printf("pwd\t\t- Returns the current working directory of the connected server.\n");
         printf("lpwd\t\t- Returns the current working directory of the client.\n");
         printf("dir\t\t- Returns a list of all the files in the current working directory of the connected server.\n");
         printf("ldir\t\t- Returns a list of all the files in the current working directory of the client.\n");
@@ -296,7 +301,7 @@ int HandleCommand(json_object *json, int socket, char **tokens, int numTokens) {
         }
         json_object *response = json_tokener_parse(response_data);
         if (response != NULL) {
-            u_int64_t response_error = json_object_get_uint64(response);
+            int64_t response_error = json_object_get_int64(response);
             if (response_error < 0) {
                 perror("Failed to parse response json.\n");
             }

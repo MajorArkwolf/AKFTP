@@ -126,16 +126,9 @@ void StartConnection(int socket) {
             send_large(socket, data, size, 0);
         }
         log_to_file(cwd, json, response, socket);
-        if (json != NULL) {
-            //while (json_object_put(response) > 1) {}
-        }
-
-        if (response != NULL) {
-            //while (json_object_put(response) > 1) {}
-        }
+        json_object_put(response);
+        json_object_put(json);
     }
-    json_object_put(json);
-    json_object_put(response);
 }
 
 int main(void) {
@@ -221,6 +214,7 @@ int main(void) {
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
         pid_t new_proc = fork();
+        //pid_t new_proc = 0;
         if (new_proc == 0) { // this is the child process
             close(sockfd);
             StartConnection(new_fd);
