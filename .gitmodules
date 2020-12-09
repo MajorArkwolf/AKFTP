@@ -1,0 +1,6 @@
+[submodule "lib/json-c"]
+	path = lib/json-c
+	url = https://github.com/json-c/json-c.git
+[submodule "lib/base64"]
+	path = lib/base64
+	url = https://github.com/MajorArkwolf/base64.git

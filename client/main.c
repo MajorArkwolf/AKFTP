@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include "client.h"
 
-int main() {
-    printf("Hello world");
-    return(0);
+int main(int argc, char** argv)
+{
+    return StartClient(argc, argv);
 }

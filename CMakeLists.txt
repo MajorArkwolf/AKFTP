@@ -1,5 +1,5 @@
 # Set cmake minimum version.
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.14)
 
 # Set the project details.
 set(PROJECT_NAME myftp)
@@ -26,6 +26,9 @@ if(UNIX AND NOT APPLE)
     set(LINUX TRUE)
 endif()
 
+if (APPLE)
+    set(CMAKE_MACOSX_RPATH 1)
+endif()
 
 # Set build output directories.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -39,6 +42,12 @@ add_executable(${PROJECT_NAME}d)
 add_subdirectory(client)
 add_subdirectory(server)
 add_subdirectory(shared)
+add_subdirectory(lib)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-shared)
-target_link_libraries(${PROJECT_NAME}d PRIVATE ${PROJECT_NAME}-shared)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-shared json-c ${SANITIZER_FLAGS})
+target_link_libraries(${PROJECT_NAME}d PRIVATE ${PROJECT_NAME}-shared json-c ${SANITIZER_FLAGS})
+target_link_libraries(${PROJECT_NAME}-shared PRIVATE json-c base64 ${SANITIZER_FLAGS})
+
+target_compile_options(${PROJECT_NAME} PRIVATE ${SANITIZER_FLAGS} -Wall -Wextra)
+target_compile_options(${PROJECT_NAME}d PRIVATE ${SANITIZER_FLAGS} -Wall -Wextra)
+target_compile_options(${PROJECT_NAME}-shared PRIVATE ${SANITIZER_FLAGS} -Wall -Wextra)
