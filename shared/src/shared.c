@@ -24,6 +24,7 @@ void *get_in_addr(struct sockaddr *sa) {
 
 ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
     u_int64_t file_size = (u_int64_t) data_size;
+    const size_t max_data_size = 1000;
     send(socket, &file_size, sizeof(u_int64_t), flags);
     bool rec = false;
     if ((recv(socket, &rec, sizeof(bool), flags)) == -1) {
@@ -48,6 +49,7 @@ ssize_t send_large(int socket, const char *data, size_t data_size, int flags) {
 }
 
 ssize_t receive_large(int socket, char **buffer, int flags) {
+    const size_t max_data_size = 1000;
     free(*buffer);
     char *buffer2 = NULL;
     u_int64_t neg_file_size = 0;
